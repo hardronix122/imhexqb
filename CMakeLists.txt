@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 23)
 
-# Change this to the name of your plugin #
-project(example_cpp)
+# Name of the plugin #
+project(imhexqb)
 
 # Include ImHex cmake module #
 set(IMHEX_BASE_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/ImHex)
@@ -15,7 +15,7 @@ addDefines()
 
 # Add your source files here #
 add_library(${PROJECT_NAME} SHARED
-        source/plugin_example.cpp
+        source/imhexqb_plugin.cpp
 )
 
 # Add additional include directories here #
@@ -46,7 +46,7 @@ endif()
 
 add_compile_definitions(IMHEX_PROJECT_NAME=\"${PROJECT_NAME}\")
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-setupCompilerWarnings(${PROJECT_NAME})
+#setupCompilerWarnings(${PROJECT_NAME})
 
 set(LIBROMFS_RESOURCE_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/romfs)
 set(LIBROMFS_PROJECT_NAME ${PROJECT_NAME})
