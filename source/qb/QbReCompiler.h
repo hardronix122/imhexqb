@@ -11,6 +11,9 @@
 class QbReCompiler {
 public:
     static std::string decompile(std::vector<u8> bytes);
+
+    static float readFloat(size_t offset, std::vector<u8> bytes);
+    static int readInt(size_t offset, std::vector<u8> bytes);
 };
 
 

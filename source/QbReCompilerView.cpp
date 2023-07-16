@@ -16,6 +16,7 @@ void QbReCompilerView::onRegionSelected(hex::Region region) {
     reader.setEndAddress(region.getEndAddress());
 
     text = QbReCompiler::decompile(reader.read(region.getStartAddress(), region.getSize()));
+    text.resize(text.size() * 2);
 }
 
 void QbReCompilerView::drawContent() {

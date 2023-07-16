@@ -1,3 +1,4 @@
+#include <cstring>
 #include "QbReCompiler.h"
 
 std::string QbReCompiler::decompile(std::vector<u8> bytes) {
@@ -34,7 +35,7 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes) {
                 code += ":a}";
                 break;
             case 0x07: // Equals
-                code += " == ";
+                code += " = ";
                 break;
             case 0x08: // Dot
                 code += ".";
@@ -77,12 +78,7 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes) {
                 break;
             case 0x16: // Checksum
                 if (i + 4 <= bytes.size()) {
-                    u8 b1 = bytes[i];
-                    u8 b2 = bytes[i + 1];
-                    u8 b3 = bytes[i + 2];
-                    u8 b4 = bytes[i + 3];
-
-                    int checksum = int(b1 << 24 | b2 << 16 | b3 << 8 | b4);
+                    int checksum = readInt(i, bytes);
 
                     code += "$[" + std::to_string(checksum) + "]$";
 
@@ -90,19 +86,79 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes) {
                 }
 
                 break;
-            case 0x17: // Long value
+            case 0x17: // Long integer
                 if (i + 4 <= bytes.size()) {
-                    u8 b1 = bytes[i];
-                    u8 b2 = bytes[i + 1];
-                    u8 b3 = bytes[i + 2];
-                    u8 b4 = bytes[i + 3];
+                    int value = readInt(i, bytes);
 
-                    long checksum = long(b1 << 24 | b2 << 16 | b3 << 8 | b4);
-
-                    code += "%i(" + std::to_string(checksum) + ".00000000)";
+                    code += "%i(" + std::to_string(value) + ".00000000)";
 
                     i += 4;
                 }
+                break;
+            case 0x18: // TODO: handle Hex Integer
+            case 0x19: // TODO: Implement enum
+                break;
+            case 0x1A: // Single float
+                if (i + 4 <= bytes.size()) {
+                    float value = readFloat(i, bytes);
+
+                    code += "%f(" + std::to_string(value) + ")";
+
+                    i += 4;
+                }
+
+                break;
+            case 0x1B: // String
+            case 0x1C: // String
+                if (i + 4 <= bytes.size()) {
+                    int size = readInt(i, bytes);
+
+                    code += "%s(" + std::to_string(size) + ", ";
+
+                    i += 4;
+
+                    std::string value;
+
+                    while(i < bytes.size()) {
+                        if(bytes[i] == 0x00) {
+                            i++;
+                            break;
+                        }
+
+                        value += static_cast<char>(bytes[i]);
+
+                        i++;
+                    }
+
+                    code += "\"" + value + "\")";
+                }
+                break;
+            case 0x1D: // Array
+                code += ":a{";
+                break;
+            case 0x1E: // Vector
+                if (i + 12 <= bytes.size()) {
+                    float x = readFloat(i, bytes);
+                    i += 4;
+                    float y = readFloat(i, bytes);
+                    i += 4;
+                    float z = readFloat(i, bytes);
+                    i += 4;
+
+                    code += "%vec3(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")";
+                }
+
+                break;
+            case 0x1F: // Pair
+                if (i + 8 <= bytes.size()) {
+                    float x = readFloat(i, bytes);
+                    i += 4;
+                    float y = readFloat(i, bytes);
+                    i += 4;
+
+                    code += "%vec2(" + std::to_string(x) + ", " + std::to_string(y) + ")";
+                }
+
                 break;
             default:
                 code += " <[!Unknown Instruction " + std::to_string(byte) + "!]> ";
@@ -111,4 +167,30 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes) {
     }
 
     return code;
+}
+
+float QbReCompiler::readFloat(size_t offset, std::vector<u8> bytes) {
+    u8 b1 = bytes[offset];
+    u8 b2 = bytes[offset + 1];
+    u8 b3 = bytes[offset + 2];
+    u8 b4 = bytes[offset + 3];
+
+    float value;
+    u_char value_bytes[] = {b1, b2, b3, b4};
+    memcpy(&value, &value_bytes, sizeof(int32_t));
+
+    return value;
+}
+
+int QbReCompiler::readInt(size_t offset, std::vector<u8> bytes) {
+    u8 b1 = bytes[offset];
+    u8 b2 = bytes[offset + 1];
+    u8 b3 = bytes[offset + 2];
+    u8 b4 = bytes[offset + 3];
+
+    int value;
+    u_char value_bytes[] = {b1, b2, b3, b4};
+    memcpy(&value, &value_bytes, sizeof(int32_t));
+
+    return value;
 }

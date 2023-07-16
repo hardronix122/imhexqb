@@ -16,7 +16,7 @@ addDefines()
 # Add your source files here #
 add_library(${PROJECT_NAME} SHARED
         source/imhexqb_plugin.cpp
-)
+        source/QbReCompilerView.cpp source/qb/QbReCompiler.cpp)
 
 # Add additional include directories here #
 target_include_directories(${PROJECT_NAME} PRIVATE include)
