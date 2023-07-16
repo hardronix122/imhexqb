@@ -119,8 +119,8 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes) {
 
                     std::string value;
 
-                    while(i < bytes.size()) {
-                        if(bytes[i] == 0x00) {
+                    while (i < bytes.size()) {
+                        if (bytes[i] == 0x00) {
                             i++;
                             break;
                         }
@@ -160,6 +160,56 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes) {
                 }
 
                 break;
+            case 0x20: // TODO: implement begin
+            case 0x21: // TODO: implement repeat
+                break;
+            case 0x22: // Break
+                code += "break";
+                break;
+            case 0x23: // Function
+                code += "function ";
+                break;
+            case 0x24: // End Function
+                code += "endfunction";
+                break;
+            case 0x25: // If
+                code += "if ";
+                break;
+            case 0x26: // Else
+                code += "else";
+                break;
+            case 0x27: // Elseif
+                code += "elseif";
+                break;
+            case 0x28: // Endif
+                code += "endif";
+                break;
+            case 0x29: // Return
+                code += "return";
+                break;
+            case 0x2A: // Undefined
+                break;
+            case 0x2B: // Symbol entry
+                if(i + 4 <= bytes.size()) {
+                    int checksum = readInt(i, bytes);
+                    i += 4;
+
+                    std::string value;
+
+                    while (i < bytes.size()) {
+                        if (bytes[i] == 0x00) {
+                            i++;
+                            break;
+                        }
+
+                        value += static_cast<char>(bytes[i]);
+
+                        i++;
+                    }
+
+                    code += "\n#/ Symbol entry: " + std::to_string(checksum) + " = " + value + "\n";
+                }
+                break;
             default:
                 code += " <[!Unknown Instruction " + std::to_string(byte) + "!]> ";
                 break;
@@ -176,7 +226,7 @@ float QbReCompiler::readFloat(size_t offset, std::vector<u8> bytes) {
     u8 b4 = bytes[offset + 3];
 
     float value;
-    u_char value_bytes[] = {b1, b2, b3, b4};
+    u8 value_bytes[] = {b1, b2, b3, b4};
     memcpy(&value, &value_bytes, sizeof(int32_t));
 
     return value;
@@ -189,7 +239,7 @@ int QbReCompiler::readInt(size_t offset, std::vector<u8> bytes) {
     u8 b4 = bytes[offset + 3];
 
     int value;
-    u_char value_bytes[] = {b1, b2, b3, b4};
+    u8 value_bytes[] = {b1, b2, b3, b4};
     memcpy(&value, &value_bytes, sizeof(int32_t));
 
     return value;
