@@ -164,8 +164,11 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std
                 }
 
                 break;
-            case 0x20: // TODO: implement begin
-            case 0x21: // TODO: implement repeat
+            case 0x20: // Begin
+                code += "while";
+                break;
+            case 0x21: // Repeat
+                code += "loop_to";
                 break;
             case 0x22: // Break
                 code += "break";

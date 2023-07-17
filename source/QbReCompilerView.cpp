@@ -25,7 +25,7 @@ void QbReCompilerView::drawContent() {
     if (ImGui::Begin("QB Re-compiler")) {
 
         if (ImGui::Button("Compile")) {
-            printf("clicked!\n");
+
         }
 
         ImGui::SameLine();
@@ -39,7 +39,9 @@ void QbReCompilerView::drawContent() {
         }
 
         ImVec2 availableSize = ImGui::GetWindowSize();
-        ImGui::InputTextMultiline("Code", text.data(), text.size(), availableSize);
+        availableSize.y -= 58;
+        availableSize.x -= 15;
+        ImGui::InputTextMultiline("Code", text.data(), text.size(), availableSize, ImGuiInputTextFlags_AllowTabInput);
     }
 
     ImGui::End();
