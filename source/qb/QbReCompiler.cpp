@@ -1,7 +1,7 @@
 #include <cstring>
 #include "QbReCompiler.h"
 
-std::string QbReCompiler::decompile(std::vector<u8> bytes) {
+std::string QbReCompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture) {
     std::string code;
 
     if (bytes[0] != 0x01) {
@@ -80,7 +80,11 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes) {
                 if (i + 4 <= bytes.size()) {
                     int checksum = readInt(i, bytes);
 
-                    code += "$[" + std::to_string(checksum) + "]$";
+                    if(symbols.contains(checksum)) {
+                        code += "$" + symbols[checksum] + "$";
+                    } else {
+                        code += "$[" + std::to_string(checksum) + "]$";
+                    }
 
                     i += 4;
                 }
@@ -190,11 +194,11 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes) {
             case 0x2A: // Undefined
                 break;
             case 0x2B: // Symbol entry
-                if(i + 4 <= bytes.size()) {
+                if (i + 4 <= bytes.size()) {
                     int checksum = readInt(i, bytes);
                     i += 4;
 
-                    std::string value;
+                    std::string name;
 
                     while (i < bytes.size()) {
                         if (bytes[i] == 0x00) {
@@ -202,13 +206,94 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes) {
                             break;
                         }
 
-                        value += static_cast<char>(bytes[i]);
+                        name += static_cast<char>(bytes[i]);
 
                         i++;
                     }
 
-                    code += "\n#/ Symbol entry: " + std::to_string(checksum) + " = " + value + "\n";
+                    //code += "\n#/ Symbol entry: " + std::to_string(checksum) + " = " + value + "\n";
+
+                    if(!symbols.contains(checksum) && greedySymbolCapture) {
+                        symbols.insert(std::pair<int32_t, std::string>(checksum, name));
+                    }
                 }
+                break;
+            case 0x2C: // AllArgs
+                code += " isNull";
+                break;
+            case 0x2D: // Argument stack or Global
+                code += "%GLOBAL%";
+                break;
+            case 0x2E: // TODO: Implement jump
+            case 0x2F: // TODO: Implement random
+            case 0x30: // TODO: Implement random range
+            case 0x31: // TODO: Implement at
+                break;
+            case 0x32: // "Or" condition
+            case 0x3B: // "Or" condition
+                code += " OR ";
+                break;
+            case 0x33: // "And" condition
+            case 0x3A: // "And" condition
+                code += " AND ";
+                break;
+            case 0x34: // "Or"? condition
+                code += " OR ? ";
+                break;
+            case 0x35: // Shift left
+                code += " << ";
+                break;
+            case 0x36: // Shift right
+                code += " >> ";
+                break;
+            case 0x37: // TODO: Implement random 2
+            case 0x38: // TODO: Implement random range 2
+                break;
+            case 0x39: // "Not" condition
+                code += "NOT ";
+                break;
+            case 0x3C: // Switch expression
+                code += "switch ";
+                break;
+            case 0x3D: // Endswitch expression
+                code += "endswitch";
+                break;
+            case 0x3E: // Case expression
+                code += "case ";
+                break;
+            case 0x3F: // Default case expression
+                code += "default";
+                break;
+            case 0x40: // TODO: Implement random. Won't merge it with previous, as it might be different
+            case 0x41: // TODO: Implement random for this one too
+                break;
+            case 0x42: // Colon
+                code += ".";
+                break;
+            case 0x43: // TODO: Never used
+            case 0x44: // TODO: Never used
+            case 0x45: // TODO: Unknown
+            case 0x46: // TODO: Unknown
+                break;
+            case 0x47: // If expression with short offset
+                if (i + 2 < bytes.size()) {
+                    short offset = readShort(i, bytes); // TODO: Figure out what that offset is used for
+                    i += 2;
+
+                    code += "if[" + std::to_string(offset) + "] ";
+                }
+
+                break;
+            case 0x48: // Else expression with short offset
+                if (i + 2 < bytes.size()) {
+                    short offset = readShort(i, bytes); // TODO: Figure out what that offset is used for
+                    i += 2;
+
+                    code += "else[" + std::to_string(offset) + "] ";
+                }
+
+                break;
+            case 0x49: // TODO: Implement short break with offset
                 break;
             default:
                 code += " <[!Unknown Instruction " + std::to_string(byte) + "!]> ";
@@ -242,5 +327,15 @@ int QbReCompiler::readInt(size_t offset, std::vector<u8> bytes) {
     u8 value_bytes[] = {b1, b2, b3, b4};
     memcpy(&value, &value_bytes, sizeof(int32_t));
 
+    return value;
+}
+
+short QbReCompiler::readShort(size_t offset, std::vector<u8> bytes) {
+    u8 b1 = bytes[offset];
+    u8 b2 = bytes[offset + 1];
+
+    short value;
+    u8 value_bytes[] = {b1, b2};
+    memcpy(&value, &value_bytes, sizeof(short));
     return value;
 }

@@ -12,6 +12,8 @@ class QbReCompilerView : public View {
 
 private:
     std::string text;
+    std::map<int32_t, std::string> symbols;
+    bool greedySymbolCapture = false;
 public:
     QbReCompilerView();
     ~QbReCompilerView() override = default;
