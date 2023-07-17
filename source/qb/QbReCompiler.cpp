@@ -296,7 +296,14 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std
                 }
 
                 break;
-            case 0x49: // TODO: Implement short break with offset
+            case 0x49: // Short break
+                if (i + 2 < bytes.size()) {
+                    short offset = readShort(i, bytes); // TODO: Figure out what that offset is used for
+                    i += 2;
+
+                    code += "shortbreak[" + std::to_string(offset) + "] ";
+                }
+
                 break;
             default:
                 code += " <[!Unknown Instruction " + std::to_string(byte) + "!]> ";
@@ -305,6 +312,12 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std
     }
 
     return code;
+}
+
+std::vector<u8> QbReCompiler::compile(std::string source) {
+    std::vector<u8> bytes = std::vector<u8>();
+
+    return bytes;
 }
 
 float QbReCompiler::readFloat(size_t offset, std::vector<u8> bytes) {
