@@ -1,4 +1,3 @@
-#include <cstring>
 #include "QbReCompiler.h"
 
 std::string QbReCompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture) {
@@ -314,8 +313,17 @@ std::string QbReCompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std
     return code;
 }
 
-std::vector<u8> QbReCompiler::compile(std::string source) {
+std::vector<u8> QbReCompiler::compile(std::string& source) {
     std::vector<u8> bytes = std::vector<u8>();
+
+    std::istringstream sourceStream(source);
+    std::string line;
+
+    while(std::getline(sourceStream, line)) {
+        for(char c : line) {
+
+        }
+    }
 
     return bytes;
 }

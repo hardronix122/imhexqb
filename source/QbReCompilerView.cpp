@@ -1,9 +1,8 @@
 #include "QbReCompilerView.h"
-#include "qb/QbReCompiler.h"
-#include "hex/providers/buffered_reader.hpp"
 
 QbReCompilerView::QbReCompilerView() : View("Qb Re-compiler") {
     symbols = std::map<int32_t, std::string>();
+    text = std::string("#/ Decompiled instructions will appear here");
 
     EventManager::subscribe<EventRegionSelected>(this, [this](Region region) {
         onRegionSelected(region);
@@ -19,13 +18,21 @@ void QbReCompilerView::onRegionSelected(hex::Region region) {
     text = QbReCompiler::decompile(reader.read(region.getStartAddress(), region.getSize()), symbols,
                                    greedySymbolCapture);
     text.resize(text.size() * 2);
+    selectedRegion = region;
 }
 
 void QbReCompilerView::drawContent() {
     if (ImGui::Begin("QB Re-compiler")) {
-
         if (ImGui::Button("Compile")) {
+            std::vector<u8> bytes = QbReCompiler::compile(text);
 
+            auto provider = ImHexApi::Provider::get();
+
+            if(selectedRegion.getSize() < bytes.size()) {
+                provider->insert(selectedRegion.getStartAddress(), bytes.size() - selectedRegion.getSize());
+            }
+
+            provider->write(selectedRegion.getStartAddress(), bytes.data(), bytes.size());
         }
 
         ImGui::SameLine();
@@ -41,7 +48,7 @@ void QbReCompilerView::drawContent() {
         ImVec2 availableSize = ImGui::GetWindowSize();
         availableSize.y -= 58;
         availableSize.x -= 15;
-        ImGui::InputTextMultiline("Code", text.data(), text.size(), availableSize, ImGuiInputTextFlags_AllowTabInput);
+        ImGui::InputTextMultiline("Code", &text, availableSize);
     }
 
     ImGui::End();
