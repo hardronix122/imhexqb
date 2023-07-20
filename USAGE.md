@@ -11,7 +11,7 @@ If you need to see checksum names:
 2. Select 0x01 or 0x2B byte
 3. Scroll to the bottom
 4. Enable greedy symbol capture
-5. Shift right-click on the last or pre-last byte of the script
+5. Shift left-click on the last or pre-last byte of the script
 6. Turn off greedy symbol capture
 
 Now, you should be able to see all the names ;3
