@@ -550,7 +550,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
 
                         index += 1;
 
-                        unsigned long valueSize = value.size();
+                        unsigned long valueSize = value.size() + 1;
 
                         bytes.push_back(0x1B);
 
