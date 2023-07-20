@@ -5,7 +5,7 @@ An experimental ImHex plugin for partial qb script recompilation
 Please, keep in mind that not every instruction is supported yet!
 
 <p align="center">
-    <img src="https://media.giphy.com/media/C2fdiDIr9ZmxgzMYMA/giphy.gif" alt="ImHexQb Demo">
+    <img src="https://media.giphy.com/media/B4FJnPMsakfFU3xHL6/giphy.gif" alt="ImHexQb Demo">
 </p>
 
 ## Feedback
