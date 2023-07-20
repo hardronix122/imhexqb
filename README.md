@@ -8,6 +8,9 @@ Please, keep in mind that not every instruction is supported yet!
     <img src="https://media.giphy.com/media/B4FJnPMsakfFU3xHL6/giphy.gif" alt="ImHexQb Demo">
 </p>
 
+## Usage
+Check [USAGE.md](https://github.com/hardronix122/imhexqb/blob/master/USAGE.md) for examples and installation tutorial
+
 ## Feedback
 
 If you have any suggestions, contact me on discord: [@hardronix](https://discordapp.com/users/450752497523621908)
