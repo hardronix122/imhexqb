@@ -16,7 +16,7 @@ addDefines()
 # Add your source files here #
 add_library(${PROJECT_NAME} SHARED
         source/imhexqb_plugin.cpp
-        source/QbReCompilerView.cpp source/qb/QbReCompiler.cpp include/misc/cpp/imgui_stdlib.cpp include/misc/cpp/imgui_stdlib.h)
+        source/qb_recompiler_view.cpp source/qb/qb_recompiler.cpp include/misc/cpp/imgui_stdlib.cpp include/misc/cpp/imgui_stdlib.h source/qb/qb_crc.cpp source/qb/qb_crc.h)
 
 # Add additional include directories here #
 target_include_directories(${PROJECT_NAME} PRIVATE include)
@@ -53,4 +53,3 @@ set(LIBROMFS_PROJECT_NAME ${PROJECT_NAME})
 add_subdirectory(${IMHEX_BASE_FOLDER}/lib/external/libromfs ${CMAKE_CURRENT_BINARY_DIR}/libromfs)
 set_target_properties(${LIBROMFS_LIBRARY} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBROMFS_LIBRARY} fmt::fmt-header-only)
-

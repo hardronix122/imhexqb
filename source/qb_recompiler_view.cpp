@@ -1,6 +1,6 @@
-#include "QbReCompilerView.h"
+#include "qb_recompiler_view.h"
 
-QbReCompilerView::QbReCompilerView() : View("Qb Re-compiler") {
+qb_recompiler_view::qb_recompiler_view() : View("Qb Re-compiler") {
     symbols = std::map<int32_t, std::string>();
     text = std::string("#/ Decompiled instructions will appear here");
 
@@ -9,22 +9,22 @@ QbReCompilerView::QbReCompilerView() : View("Qb Re-compiler") {
     });
 }
 
-void QbReCompilerView::onRegionSelected(hex::Region region) {
+void qb_recompiler_view::onRegionSelected(hex::Region region) {
     auto provider = ImHexApi::Provider::get();
 
     auto reader = prv::ProviderReader(provider);
     reader.setEndAddress(region.getEndAddress());
 
-    text = QbReCompiler::decompile(reader.read(region.getStartAddress(), region.getSize()), symbols,
-                                   greedySymbolCapture);
+    text = qb_recompiler::decompile(reader.read(region.getStartAddress(), region.getSize()), symbols,
+                                    greedySymbolCapture);
     text.resize(text.size() * 2);
     selectedRegion = region;
 }
 
-void QbReCompilerView::drawContent() {
+void qb_recompiler_view::drawContent() {
     if (ImGui::Begin("QB Re-compiler")) {
         if (ImGui::Button("Compile")) {
-            std::vector<u8> bytes = QbReCompiler::compile(text);
+            std::vector<u8> bytes = qb_recompiler::compile(text);
 
             auto provider = ImHexApi::Provider::get();
 

@@ -4,13 +4,13 @@
 #include <vector>
 #include <string>
 #include "hex/ui/view.hpp"
-#include "qb/QbReCompiler.h"
+#include "qb/qb_recompiler.h"
 #include "hex/providers/buffered_reader.hpp"
 #include "misc/cpp/imgui_stdlib.h"
 
 using namespace hex;
 
-class QbReCompilerView : public View {
+class qb_recompiler_view : public View {
 
 private:
     std::string text;
@@ -18,8 +18,8 @@ private:
     bool greedySymbolCapture = false;
     hex::Region selectedRegion{};
 public:
-    QbReCompilerView();
-    ~QbReCompilerView() override = default;
+    qb_recompiler_view();
+    ~qb_recompiler_view() override = default;
     void drawContent() override;
 
     void onRegionSelected(Region region);
