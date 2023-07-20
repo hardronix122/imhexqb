@@ -761,7 +761,6 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                 bytes.push_back(0x14);
             }
 
-
             index++;
         }
     }

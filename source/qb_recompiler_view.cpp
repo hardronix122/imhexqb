@@ -33,6 +33,8 @@ void qb_recompiler_view::drawContent() {
             }
 
             provider->write(selectedRegion.getStartAddress(), bytes.data(), bytes.size());
+
+            ImHexApi::HexEditor::setSelection(selectedRegion.getStartAddress(), bytes.size());
         }
 
         ImGui::SameLine();
