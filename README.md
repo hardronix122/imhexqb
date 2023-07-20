@@ -3,6 +3,11 @@
 An experimental ImHex plugin for partial qb script recompilation
 
 Please, keep in mind that not every instruction is supported yet!
+
+<p align="center">
+    <img src="https://media.giphy.com/media/pJ68r3Gd2mVt2RswGV/giphy.gif" width="480" height="270" alt="ImHexQb Demo">
+</p>
+
 ## Feedback
 
 If you have any suggestions, contact me on discord: [@hardronix](https://discordapp.com/users/450752497523621908)
