@@ -5,6 +5,7 @@ Go to Help -> About, check plugins paths and extract downloaded archive into one
 
 # Usage
 It's quite intuitive, as any selected chunk of bytes will be instantly decompiled, press Compile to compile it
+
 If you need to see checksum names:
 1. Find where qb table begins (usually it's a dense chunk of ASCII text, which begins from 0x01 0x2B, followed by 4 bytes and text, then repeats)
 2. Select 0x01 or 0x2B byte
