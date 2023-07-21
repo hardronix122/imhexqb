@@ -7,9 +7,10 @@
 #include <cstring>
 #include <sstream>
 #include <iomanip>
-
+#include <exception>
 #include "hex/helpers/types.hpp"
 #include "qb_crc.h"
+#include "exception/qb_exception.h"
 
 class qb_recompiler {
 public:

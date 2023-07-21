@@ -59,7 +59,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
             case 0xF: // Nesting decrease
                 break;
             case 0x10: // Never? Whatever..
-                code += "<![This instruction shouldn't be here!]>";
+                code += "<[!This instruction shouldn't be here!]>";
                 break;
             case 0x11: // Equals
                 code += " == ";
@@ -317,7 +317,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
 }
 
 std::vector<u8> qb_recompiler::compile(std::string &source) {
-    std::vector<u8> bytes = std::vector<u8>();
+    std::vector <u8> bytes = std::vector<u8>();
 
     std::istringstream sourceStream(source);
     std::string line;
@@ -392,7 +392,16 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                     bytes.push_back(0x15);
                 }
 
-                if(line.size() >= 3) {
+                if (line.size() >= 3) {
+                    // Make sure there are no de-compilation warnings
+                    if(line[index] == '<' && line[index + 1] == '[' && line[index + 2] == '!') {
+                        throw qb_exception("De-compilation warning found!");
+                    }
+
+                    if(line[index] == '!' && line[index + 1] == ']' && line[index + 2] == '>') {
+                        throw qb_exception("De-compilation warning found!");
+                    }
+
                     /*
                     * Operator name: Struct [0x03] + Struct End [0x04}
                     * Operands: None
@@ -402,10 +411,10 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                     * Insert struct begin if the next sequence is :s{, insert struct end if the next sequence is :s}
                     */
 
-                    if(line[index] == ':' && line[index + 1] == 's') {
-                        if(line[index + 2] == '{') {
+                    if (line[index] == ':' && line[index + 1] == 's') {
+                        if (line[index + 2] == '{') {
                             bytes.push_back(0x03);
-                        } else if(line[index + 2] == '}') {
+                        } else if (line[index + 2] == '}') {
                             bytes.push_back(0x04);
                         }
                     }
@@ -419,10 +428,10 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                     * Insert array begin if the next sequence is :a{, insert struct end if the next sequence is :a}
                     */
 
-                    if(line[index] == ':' && line[index + 1] == 'a') {
-                        if(line[index + 2] == '{') {
+                    if (line[index] == ':' && line[index + 1] == 'a') {
+                        if (line[index + 2] == '{') {
                             bytes.push_back(0x05);
-                        } else if(line[index + 2] == '}') {
+                        } else if (line[index + 2] == '}') {
                             bytes.push_back(0x06);
                         }
                     }
@@ -439,13 +448,13 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                     * Convert it to long
                     * Skip leftovers
                     */
-                    if(line[index] == '%' && line[index + 1] == 'i' && line[index + 2] == '(') {
+                    if (line[index] == '%' && line[index + 1] == 'i' && line[index + 2] == '(') {
                         index += 3;
 
                         std::string valueString;
 
-                        while(index < line.size()) {
-                            if(line[index] == '.') {
+                        while (index < line.size()) {
+                            if (line[index] == '.') {
                                 break;
                             }
 
@@ -454,8 +463,8 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                             index++;
                         }
 
-                        while(index < line.size()) {
-                            if(line[index] == ')') {
+                        while (index < line.size()) {
+                            if (line[index] == ')') {
                                 break;
                             }
 
@@ -483,13 +492,13 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                     * Read the value until )
                     * Convert it to float
                     */
-                    if(line[index] == '%' && line[index + 1] == 'f' && line[index + 2] == '(') {
+                    if (line[index] == '%' && line[index + 1] == 'f' && line[index + 2] == '(') {
                         index += 3;
 
                         std::string valueString;
 
-                        while(index < line.size()) {
-                            if(line[index] == ')') {
+                        while (index < line.size()) {
+                            if (line[index] == ')') {
                                 break;
                             }
 
@@ -501,7 +510,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                         float value = std::stof(valueString);
                         unsigned char valueBytes[4];
 
-                        std::memcpy(valueBytes, reinterpret_cast<const unsigned char*>(&value), sizeof(float));
+                        std::memcpy(valueBytes, reinterpret_cast<const unsigned char *>(&value), sizeof(float));
 
                         bytes.push_back(0x1A);
 
@@ -524,13 +533,13 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                     * Increase index by 1
                     * Calculate it's size
                     */
-                    if(line[index] == '%' && line[index + 1] == 's' && line[index + 2] == '(') {
+                    if (line[index] == '%' && line[index + 1] == 's' && line[index + 2] == '(') {
                         index += 3;
 
                         std::string value;
 
-                        while(index < line.size()) {
-                            if(line[index] == '"') {
+                        while (index < line.size()) {
+                            if (line[index] == '"') {
                                 index++;
                                 break;
                             }
@@ -538,8 +547,8 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                             index++;
                         }
 
-                        while(index < line.size()) {
-                            if(line[index] == '"') {
+                        while (index < line.size()) {
+                            if (line[index] == '"') {
                                 break;
                             }
 
@@ -559,11 +568,179 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                         bytes.push_back((valueSize) >> 16);
                         bytes.push_back((valueSize) >> 24);
 
-                        for(char c : value) {
+                        for (char c: value) {
                             bytes.push_back(c);
                         }
 
                         bytes.push_back(0x00);
+                    }
+                }
+
+
+                if (line.size() >= 6) {
+                    /*
+                    * Operator name: Vector [0x1E]
+                    * Operands: Float, Float, Float
+                    * Format: %vec3(value, value, value)
+                    *
+                    * Algorithm:
+                    * Check if the next sequence is "%vec3("
+                    * Increase the index by 6
+                    * Read the first value until comma
+                    * Increase the index by 1
+                    * Read the second value until comma
+                    * Increase the index by 1
+                    * Read the third value until ')'
+                    */
+
+                    // TODO: Probably replace it with substr comparison, questioning my own existence right now
+                    if (line[index] == '%' && line[index + 1] == 'v' && line[index + 2] == 'e' && line[index + 3] == 'c' && line[index + 4] == '3' && line[index + 5] == '(') {
+                        index += 6;
+
+                        float x;
+                        float y;
+                        float z;
+
+                        std::string tempValue;
+
+                        while(index < line.size()) {
+                            if(line[index] == ',') {
+                                index++;
+                                break;
+                            }
+
+                            tempValue.push_back(line[index]);
+
+                            index++;
+                        }
+
+                        x = std::stof(tempValue);
+
+                        tempValue.clear();
+
+                        while(index < line.size()) {
+                            if(line[index] == ',') {
+                                index++;
+                                break;
+                            }
+
+                            tempValue.push_back(line[index]);
+
+                            index++;
+                        }
+
+                        y = std::stof(tempValue);
+
+                        tempValue.clear();
+
+                        while(index < line.size()) {
+                            if(line[index] == ')') {
+                                break;
+                            }
+
+                            tempValue.push_back(line[index]);
+
+                            index++;
+                        }
+
+                        z = std::stof(tempValue);
+
+                        tempValue.clear();
+
+                        unsigned char xBytes[4];
+                        unsigned char yBytes[4];
+                        unsigned char zBytes[4];
+
+                        std::memcpy(xBytes, reinterpret_cast<const unsigned char *>(&x), sizeof(float));
+                        std::memcpy(yBytes, reinterpret_cast<const unsigned char *>(&y), sizeof(float));
+                        std::memcpy(zBytes, reinterpret_cast<const unsigned char *>(&z), sizeof(float));
+
+                        bytes.push_back(0x1E);
+
+                        bytes.push_back(xBytes[0]);
+                        bytes.push_back(xBytes[1]);
+                        bytes.push_back(xBytes[2]);
+                        bytes.push_back(xBytes[3]);
+
+                        bytes.push_back(yBytes[0]);
+                        bytes.push_back(yBytes[1]);
+                        bytes.push_back(yBytes[2]);
+                        bytes.push_back(yBytes[3]);
+
+                        bytes.push_back(zBytes[0]);
+                        bytes.push_back(zBytes[1]);
+                        bytes.push_back(zBytes[2]);
+                        bytes.push_back(zBytes[3]);
+                    }
+
+                    /*
+                    * Operator name: Pair [0x1F]
+                    * Operands: Float, Float
+                    * Format: %vec2(value, value)
+                    *
+                    * Algorithm:
+                    * Check if the next sequence is "%vec2("
+                    * Increase the index by 6
+                    * Read the first value until comma
+                    * Increase the index by 1
+                    * Read the second value until ')'
+                    */
+
+                    // TODO: Probably replace it with substr comparison too, questioning my own existence right now even more
+                    if (line[index] == '%' && line[index + 1] == 'v' && line[index + 2] == 'e' && line[index + 3] == 'c' && line[index + 4] == '2' && line[index + 5] == '(') {
+                        index += 6;
+
+                        float x;
+                        float y;
+
+                        std::string tempValue;
+
+                        while(index < line.size()) {
+                            if(line[index] == ',') {
+                                index++;
+                                break;
+                            }
+
+                            tempValue.push_back(line[index]);
+
+                            index++;
+                        }
+
+                        x = std::stof(tempValue);
+
+                        tempValue.clear();
+
+                        while(index < line.size()) {
+                            if(line[index] == ')') {
+                                break;
+                            }
+
+                            tempValue.push_back(line[index]);
+
+                            index++;
+                        }
+
+                        y = std::stof(tempValue);
+
+                        tempValue.clear();
+
+                        unsigned char xBytes[4];
+                        unsigned char yBytes[4];
+
+                        std::memcpy(xBytes, reinterpret_cast<const unsigned char *>(&x), sizeof(float));
+                        std::memcpy(yBytes, reinterpret_cast<const unsigned char *>(&y), sizeof(float));
+
+                        bytes.push_back(0x1F);
+
+                        bytes.push_back(xBytes[0]);
+                        bytes.push_back(xBytes[1]);
+                        bytes.push_back(xBytes[2]);
+                        bytes.push_back(xBytes[3]);
+
+                        bytes.push_back(yBytes[0]);
+                        bytes.push_back(yBytes[1]);
+                        bytes.push_back(yBytes[2]);
+                        bytes.push_back(yBytes[3]);
                     }
                 }
 
@@ -585,15 +762,12 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
 
                     std::string hex_string;
 
-                    if(index + 8 > line.size()) {
+                    if (index + 8 > line.size()) {
                         break;
                     }
 
                     for (int i = 0; i < 8; i++) {
                         hex_string.push_back(line[index]);
-
-                        printf("%c\n", line[index]);
-
                         index++;
                     }
 
@@ -609,6 +783,18 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                     bytes.push_back(checksum & 0xFF);
 
                     continue;
+                }
+
+                /*
+                * Operator name: AllArgs
+                * Operands: None
+                * Format: isNull
+                * Algorithm:
+                * Insert if the next sequence is "isNull"
+                */
+                if(line.substr(index, 6) == "isNull") {
+                    bytes.push_back(0x2C);
+                    index += 5;
                 }
             }
 
@@ -661,7 +847,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
             * Algorithm:
             * Insert if the next character is '='
             */
-            if(line[index] == '=') {
+            if (line[index] == '=') {
                 bytes.push_back(0x07);
             }
 
@@ -673,7 +859,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
             * Algorithm:
             * Insert if the next character is '.'
             */
-            if(line[index] == '.') {
+            if (line[index] == '.') {
                 bytes.push_back(0x08);
             }
 
@@ -685,7 +871,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
             * Algorithm:
             * Insert if the next character is ','
             */
-            if(line[index] == ',') {
+            if (line[index] == ',') {
                 bytes.push_back(0x09);
             }
 
@@ -697,7 +883,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
             * Algorithm:
             * Insert if the next character is '-'
             */
-            if(line[index] == '-') {
+            if (line[index] == '-') {
                 bytes.push_back(0xA);
             }
 
@@ -709,7 +895,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
             * Algorithm:
             * Insert if the next character is '+'
             */
-            if(line[index] == '+') {
+            if (line[index] == '+') {
                 bytes.push_back(0xB);
             }
 
@@ -721,7 +907,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
             * Algorithm:
             * Insert if the next character is '*'
             */
-            if(line[index] == '*') {
+            if (line[index] == '*') {
                 bytes.push_back(0xC);
             }
 
@@ -733,7 +919,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
             * Algorithm:
             * Insert if the next character is '/'
             */
-            if(line[index] == '/') {
+            if (line[index] == '/') {
                 bytes.push_back(0xD);
             }
 
@@ -745,7 +931,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
             * Algorithm:
             * Insert if the next character is '<'
             */
-            if(line[index] == '<') {
+            if (line[index] == '<') {
                 bytes.push_back(0x12);
             }
 
@@ -757,8 +943,52 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
             * Algorithm:
             * Insert if the next character is '>'
             */
-            if(line[index] == '>') {
+            if (line[index] == '>') {
                 bytes.push_back(0x14);
+            }
+
+            if(index + 8 <= line.size()) {
+                /*
+                * Operator name: Function [0x23]
+                * Operands: None
+                * Format: function
+                *
+                * Algorithm:
+                * Insert if the next sequence is "function"
+                */
+                if (line.substr(index, 8) == "function") {
+                    bytes.push_back(0x23);
+                    index += 7;
+                }
+
+                /*
+                * Operator name: ArgStack / Global [0x2D]
+                * Operands: None
+                * Format: %GLOBAL%
+                *
+                * Algorithm:
+                * Insert if the next sequence is %GLOBAL%
+                */
+                if(line.substr(index, 8) == "%GLOBAL%") {
+                    bytes.push_back(0x2D);
+                    index += 7;
+                }
+            }
+
+            /*
+            * Operator name: End Function [0x24]
+            * Operands: None
+            * Format: endfunction
+            *
+            * Algorithm:
+            * Insert if the next sequence is "endfunction"
+            */
+
+            if(index + 11 <= line.size()) {
+                if (line.substr(index, 11) == "endfunction") {
+                    bytes.push_back(0x24);
+                    index += 10;
+                }
             }
 
             index++;

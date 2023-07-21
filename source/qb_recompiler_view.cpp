@@ -24,17 +24,31 @@ void qb_recompiler_view::onRegionSelected(hex::Region region) {
 void qb_recompiler_view::drawContent() {
     if (ImGui::Begin("QB Re-compiler")) {
         if (ImGui::Button("Compile")) {
-            std::vector<u8> bytes = qb_recompiler::compile(text);
-
+            std::vector<u8> bytes;
             auto provider = ImHexApi::Provider::get();
 
-            if(selectedRegion.getSize() < bytes.size()) {
-                provider->insert(selectedRegion.getStartAddress(), bytes.size() - selectedRegion.getSize());
+            errors.clear();
+
+            try {
+                bytes = qb_recompiler::compile(text);
+            } catch (qb_exception &exception) {
+                errors.emplace_back(exception.what());
+            } catch (std::exception &exception) {
+                errors.emplace_back(exception.what());
             }
 
-            provider->write(selectedRegion.getStartAddress(), bytes.data(), bytes.size());
+            if (!bytes.empty()) {
+                if (selectedRegion.getSize() < bytes.size()) {
+                    provider->insert(selectedRegion.getStartAddress(), bytes.size() - selectedRegion.getSize());
+                } else if(bytes.size() < selectedRegion.getSize()) {
+                    unsigned long excessiveSize = selectedRegion.getSize() - bytes.size();
+                    provider->remove(selectedRegion.getEndAddress() - excessiveSize, excessiveSize);
+                }
 
-            ImHexApi::HexEditor::setSelection(selectedRegion.getStartAddress(), bytes.size());
+                provider->write(selectedRegion.getStartAddress(), bytes.data(), bytes.size());
+
+                ImHexApi::HexEditor::setSelection(selectedRegion.getStartAddress(), bytes.size());
+            }
         }
 
         ImGui::SameLine();
@@ -47,10 +61,23 @@ void qb_recompiler_view::drawContent() {
             symbols.clear();
         }
 
-        ImVec2 availableSize = ImGui::GetWindowSize();
-        availableSize.y -= 58;
-        availableSize.x -= 15;
-        ImGui::InputTextMultiline("Code", &text, availableSize);
+        ImVec2 errorFieldSize = ImGui::GetWindowSize();
+        errorFieldSize.x -= 15;
+        errorFieldSize.y = errorFieldSize.y / 4;
+
+        ImVec2 codeFieldSize = ImGui::GetWindowSize();
+        codeFieldSize.y -= 65 + errorFieldSize.y;
+        codeFieldSize.x -= 15;
+
+        ImGui::InputTextMultiline("Code", &text, codeFieldSize);
+
+        if(ImGui::BeginListBox("Errors", errorFieldSize)) {
+            for(std::string& error : errors) {
+                ImGui::Selectable(error.c_str(), false, ImGuiSelectableFlags_Disabled);
+            }
+
+            ImGui::EndListBox();
+        }
     }
 
     ImGui::End();

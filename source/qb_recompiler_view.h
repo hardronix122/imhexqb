@@ -14,6 +14,7 @@ class qb_recompiler_view : public View {
 
 private:
     std::string text;
+    std::vector<std::string> errors;
     std::map<int32_t, std::string> symbols;
     bool greedySymbolCapture = false;
     hex::Region selectedRegion{};

@@ -65,6 +65,12 @@ Almost everything, except for:
 + Long Integer
 + Float Integer
 + String
++ Vector
++ Pair
++ Function
++ End Function
++ ArgStack / Global
++ AllArgs / isNull
 + Checksum
 + Dot
 + Comma

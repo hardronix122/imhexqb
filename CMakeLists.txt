@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 23)
 
-# Name of the plugin #
-project(imhexqb)
+# ImHexQb #
+project(imhexqb VERSION 1.0.1)
 
 # Include ImHex cmake module #
 set(IMHEX_BASE_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/ImHex)
@@ -16,7 +16,7 @@ addDefines()
 # Add your source files here #
 add_library(${PROJECT_NAME} SHARED
         source/imhexqb_plugin.cpp
-        source/qb_recompiler_view.cpp source/qb/qb_recompiler.cpp include/misc/cpp/imgui_stdlib.cpp include/misc/cpp/imgui_stdlib.h source/qb/qb_crc.cpp source/qb/qb_crc.h)
+        source/qb_recompiler_view.cpp source/qb/qb_recompiler.cpp include/misc/cpp/imgui_stdlib.cpp include/misc/cpp/imgui_stdlib.h source/qb/qb_crc.cpp source/qb/qb_crc.h source/qb/exception/qb_exception.h)
 
 # Add additional include directories here #
 target_include_directories(${PROJECT_NAME} PRIVATE include)
