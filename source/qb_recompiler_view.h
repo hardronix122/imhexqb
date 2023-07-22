@@ -17,6 +17,7 @@ private:
     std::vector<std::string> errors;
     std::map<int32_t, std::string> symbols;
     bool greedySymbolCapture = false;
+    bool heuristicIndentation = false;
     hex::Region selectedRegion{};
 public:
     qb_recompiler_view();

@@ -16,7 +16,7 @@ void qb_recompiler_view::onRegionSelected(hex::Region region) {
     reader.setEndAddress(region.getEndAddress());
 
     text = qb_recompiler::decompile(reader.read(region.getStartAddress(), region.getSize()), symbols,
-                                    greedySymbolCapture);
+                                    greedySymbolCapture, heuristicIndentation);
     text.resize(text.size() * 2);
     selectedRegion = region;
 }
@@ -40,7 +40,7 @@ void qb_recompiler_view::drawContent() {
             if (!bytes.empty()) {
                 if (selectedRegion.getSize() < bytes.size()) {
                     provider->insert(selectedRegion.getStartAddress(), bytes.size() - selectedRegion.getSize());
-                } else if(bytes.size() < selectedRegion.getSize()) {
+                } else if (bytes.size() < selectedRegion.getSize()) {
                     unsigned long excessiveSize = selectedRegion.getSize() - bytes.size();
                     provider->remove(selectedRegion.getEndAddress() - excessiveSize, excessiveSize);
                 }
@@ -57,9 +57,13 @@ void qb_recompiler_view::drawContent() {
 
         ImGui::SameLine();
 
-        if (ImGui::Button("Clear symbol entries (checksum names list)")) {
+        if (ImGui::Button("Clear checksum names list")) {
             symbols.clear();
         }
+
+        ImGui::SameLine();
+
+        ImGui::Checkbox("Heuristic indentation", &heuristicIndentation);
 
         ImVec2 errorFieldSize = ImGui::GetWindowSize();
         errorFieldSize.x -= 15;
@@ -71,8 +75,8 @@ void qb_recompiler_view::drawContent() {
 
         ImGui::InputTextMultiline("Code", &text, codeFieldSize);
 
-        if(ImGui::BeginListBox("Errors", errorFieldSize)) {
-            for(std::string& error : errors) {
+        if (ImGui::BeginListBox("Errors", errorFieldSize)) {
+            for (std::string &error: errors) {
                 ImGui::Selectable(error.c_str(), false, ImGuiSelectableFlags_Disabled);
             }
 

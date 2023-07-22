@@ -1,7 +1,7 @@
 #include "qb_recompiler.h"
 
 std::string
-qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture) {
+qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture, bool heuristicIndentation) {
     std::string code;
 
     if (bytes[0] != 0x01) {
@@ -9,6 +9,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
     }
 
     size_t i = 0;
+    u8 lastInstruction;
 
     while (i < bytes.size()) {
         u8 byte = bytes[i];
@@ -30,9 +31,23 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 break;
             case 0x05: // Array
                 code += ":a{";
+
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 break;
             case 0x06: // End Array
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 code += ":a}";
+
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 break;
             case 0x07: // Equals
                 code += " = ";
@@ -86,6 +101,11 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                         std::stringstream ss;
                         ss << std::setfill('0') << std::setw(sizeof(int) * 2) << std::hex << checksum;
                         code += "$[" + ss.str() + "]$";
+                    }
+
+                    // Add a new line if last instruction was function (0x23)
+                    if(heuristicIndentation && lastInstruction == 0x23) {
+                        code += "\n";
                     }
 
                     i += 4;
@@ -176,24 +196,62 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 code += "break";
                 break;
             case 0x23: // Function
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 code += "function ";
                 break;
             case 0x24: // End Function
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 code += "endfunction";
+
+                if(heuristicIndentation) {
+                    code += "\n\n";
+                }
+
                 break;
             case 0x25: // If
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 code += "if ";
                 break;
             case 0x26: // Else
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 code += "else";
                 break;
             case 0x27: // Elseif
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 code += "elseif";
                 break;
             case 0x28: // Endif
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 code += "endif";
+
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 break;
             case 0x29: // Return
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 code += "return";
                 break;
             case 0x2A: // Undefined
@@ -225,6 +283,11 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 break;
             case 0x2C: // AllArgs
                 code += " isNull";
+
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 break;
             case 0x2D: // Argument stack or Global
                 code += "%GLOBAL%";
@@ -258,16 +321,33 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 code += "NOT ";
                 break;
             case 0x3C: // Switch expression
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 code += "switch ";
                 break;
             case 0x3D: // Endswitch expression
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 code += "endswitch";
                 break;
             case 0x3E: // Case expression
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 code += "case ";
                 break;
             case 0x3F: // Default case expression
                 code += "default";
+
+                if(heuristicIndentation) {
+                    code += "\n";
+                }
+
                 break;
             case 0x40: // TODO: Implement random. Won't merge it with previous, as it might be different
             case 0x41: // TODO: Implement random for this one too
@@ -295,6 +375,10 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                     i += 2;
 
                     code += "else[" + std::to_string(offset) + "] ";
+
+                    if(heuristicIndentation) {
+                        code += "\n";
+                    }
                 }
 
                 break;
@@ -311,6 +395,9 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 code += " <[!Unknown Instruction " + std::to_string(byte) + "!]> ";
                 break;
         }
+
+        lastInstruction = byte;
+
     }
 
     return code;
@@ -773,7 +860,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
 
                     index += 2;
 
-                    unsigned long checksum = std::stol(hex_string, nullptr, 16);
+                    unsigned long checksum = std::stoul(hex_string, nullptr, 16);
 
                     bytes.push_back(0x16);
 

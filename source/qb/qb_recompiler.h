@@ -14,7 +14,7 @@
 
 class qb_recompiler {
 public:
-    static std::string decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture);
+    static std::string decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture, bool heuristicIndentation);
     static std::vector<u8> compile(std::string& source);
     static float readFloat(size_t offset, std::vector<u8> bytes);
     static int readInt(size_t offset, std::vector<u8> bytes);
