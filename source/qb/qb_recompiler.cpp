@@ -911,7 +911,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 }
 
                 /*
-                * Operator name: AllArgs
+                * Operator name: AllArgs [0x2C]
                 * Operands: None
                 * Format: isNull
                 * Algorithm:
@@ -1001,7 +1001,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
             }
 
             /*
-            * Operator name: Minus [0xA]
+            * Operator name: Minus [0x0A]
             * Operands: None
             * Format: -
             *
@@ -1013,7 +1013,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
             }
 
             /*
-            * Operator name: Plus [0xB]
+            * Operator name: Plus [0x0B]
             * Operands: None
             * Format: +
             *
@@ -1025,7 +1025,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
             }
 
             /*
-            * Operator name: Multiply [0xC]
+            * Operator name: Multiply [0x0C]
             * Operands: None
             * Format: *
             *
@@ -1037,7 +1037,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
             }
 
             /*
-            * Operator name: Divide [0xD]
+            * Operator name: Divide [0x0D]
             * Operands: None
             * Format: /
             *
@@ -1118,7 +1118,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
 
             if (index + 3 <= line.size()) {
                 /*
-                * Operator name: If with offset (0x47)
+                * Operator name: If with offset [0x47]
                 * Operands: Offset
                 * Format: if[offset]
                 *
@@ -1151,7 +1151,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 }
 
                 /*
-                * Operator name: Conditional NOT (0x39)
+                * Operator name: Conditional NOT [0x39]
                 * Operands: None
                 * Format: NOT
                 *
@@ -1165,7 +1165,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 }
 
                 /*
-                * Operator name: Conditional AND (0x3A)
+                * Operator name: Conditional AND [0x3A]
                 * Operands: None
                 * Format: AND
                 *
@@ -1181,7 +1181,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
 
             if (index + 2 <= line.size()) {
                 /*
-                * Operator name: If (0x25)
+                * Operator name: If [0x25]
                 * Operands: None
                 * Format: if
                 *
@@ -1195,7 +1195,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 }
 
                 /*
-                * Operator name: OR (0x3B)
+                * Operator name: Conditional OR [0x3B]
                 * Operands: None
                 * Format: OR
                 *
@@ -1211,7 +1211,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
 
             if (index + 5 <= line.size()) {
                 /*
-                * Operator name: Jump (0x2E)
+                * Operator name: Jump [0x2E]
                 * Operands: Offset
                 * Format: jump[offset]
                 *
@@ -1243,7 +1243,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 }
 
                 /*
-                * Operator name: Break (0x22)
+                * Operator name: Break [0x22]
                 * Operands: None
                 * Format: break
                 *
@@ -1257,7 +1257,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 }
 
                 /*
-                * Operator name: While (0x20)
+                * Operator name: While [0x20]
                 * Operands: None
                 * Format: while
                 *
@@ -1272,7 +1272,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 }
 
                 /*
-                * Operator name: Else with offset (0x48)
+                * Operator name: Else with offset [0x48]
                 * Operands: Offset
                 * Format: else[offset]
                 *
@@ -1304,7 +1304,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 }
 
                 /*
-                * Operator name: If End (0x28)
+                * Operator name: If End [0x28]
                 * Operands: None
                 * Format: endif
                 *
@@ -1321,7 +1321,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
 
             if(index + 7 <= line.size()) {
                 /*
-                * Operator name: Repeat (0x21)
+                * Operator name: Repeat [0x21]
                 * Operands: None
                 * Format: loop_to
                 *
@@ -1338,7 +1338,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
 
             if(index + 6 <= line.size()) {
                 /*
-                * Operator name: Else If (0x27)
+                * Operator name: Else If [0x27]
                 * Operands: None
                 * Format: elseif
                 *
@@ -1355,7 +1355,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
 
             if (index + 4 <= line.size()) {
                 /*
-                * Operator name: Else (0x26)
+                * Operator name: Else [0x26]
                 * Operands: None
                 * Format: else
                 *
@@ -1370,7 +1370,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
             }
 
             /*
-            * Operator name: End Of Line (0x02)
+            * Operator name: End Of Line [0x02]
             * Operands: None
             * Format: ;
             *
