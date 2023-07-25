@@ -116,12 +116,25 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 if (i + 4 <= bytes.size()) {
                     int value = readInt(i, bytes);
 
-                    code += "%i(" + std::to_string(value) + ".00000000)";
+                    code += "%i(" + std::to_string(value) + ",00000000)";
 
                     i += 4;
                 }
                 break;
-            case 0x18: // TODO: handle Hex Integer
+            case 0x18: // Hex Integer
+                if(i + 4 <= bytes.size()) {
+                    int value = readInt(i, bytes);
+
+                    code += "%i(" + std::to_string(value) + ",";
+
+                    std::stringstream ss;
+                    ss << std::setfill('0') << std::setw(sizeof(int) * 2) << std::hex << value;
+
+                    code += ss.str() + ')';
+
+                    i += 4;
+                }
+                break;
             case 0x19: // TODO: Implement enum
                 break;
             case 0x1A: // Single float
@@ -361,7 +374,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
             case 0x46: // TODO: Unknown
                 break;
             case 0x47: // If expression with short offset
-                if (i + 2 < bytes.size()) {
+                if (i + 2 <= bytes.size()) {
                     short offset = readShort(i, bytes); // TODO: Figure out what that offset is used for
                     i += 2;
 
@@ -370,7 +383,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
 
                 break;
             case 0x48: // Else expression with short offset
-                if (i + 2 < bytes.size()) {
+                if (i + 2 <= bytes.size()) {
                     short offset = readShort(i, bytes); // TODO: Figure out what that offset is used for
                     i += 2;
 
@@ -383,7 +396,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
 
                 break;
             case 0x49: // Short break
-                if (i + 2 < bytes.size()) {
+                if (i + 2 <= bytes.size()) {
                     short offset = readShort(i, bytes); // TODO: Figure out what that offset is used for
                     i += 2;
 
@@ -531,7 +544,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                     * Algorithm:
                     * Check if the next sequence is "%i("
                     * Increase index by 3
-                    * Read the value until dot
+                    * Read the value until comma
                     * Convert it to long
                     * Skip leftovers
                     */
@@ -541,7 +554,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                         std::string valueString;
 
                         while (index < line.size()) {
-                            if (line[index] == '.') {
+                            if (line[index] == ',') {
                                 break;
                             }
 
@@ -1075,6 +1088,75 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                 if (line.substr(index, 11) == "endfunction") {
                     bytes.push_back(0x24);
                     index += 10;
+                }
+            }
+
+            if(index + 3 <= line.size()) {
+                /*
+                * Operator name: If with offset (0x47)
+                * Operands: Offset
+                * Format: if[offset]
+                *
+                * Algorithm:
+                * Increase index by 3 to skip if[
+                * Read the offset until ']'
+                */
+                if(line[index] == 'i' && line[index + 1] == 'f' && line[index + 2] == '[') {
+                    index += 3;
+
+                    std::string stringOffset;
+
+                    while(line.size() > index) {
+                        if(line[index] == ']') {
+                            break;
+                        }
+
+                        stringOffset.push_back(line[index]);
+
+                        index++;
+                    }
+
+                    auto offset = (short) std::stoi(stringOffset);
+
+                    // TODO: Temporary solution for debugging purposes
+                    bytes.push_back(0x47);
+
+                    bytes.push_back(offset & 0xFF);
+                    bytes.push_back((offset >> 8) & 0xFF);
+                }
+            }
+
+            if(index + 2 <= line.size()) {
+                /*
+                * Operator name: If (0x25)
+                * Operands: None
+                * Format: if
+                *
+                * Algorithm:
+                * Insert if the next sequence is "if"
+                */
+                if(line[index] == 'i' && line[index + 1] == 'f') {
+                    bytes.push_back(0x25);
+
+                    index += 1;
+                }
+            }
+
+            if(index + 5 <= line.size()) {
+
+                /*
+                * Operator name: If End (0x28)
+                * Operands: None
+                * Format: endif
+                *
+                * Algorithm:
+                * Insert if the next sequence is "endif"
+                */
+
+                if(line[index] == 'e' && line[index + 1] == 'n' && line[index + 2] == 'd' && line[index + 3] == 'i' && line[index + 4] == 'f') {
+                    bytes.push_back(0x28);
+
+                    index += 4;
                 }
             }
 
