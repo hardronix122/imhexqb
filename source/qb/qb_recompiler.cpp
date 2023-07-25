@@ -6,7 +6,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
     std::string code;
 
     if (bytes[0] != 0x01 && generation > 4) {
-        code += "#/ Owops! This chunk doesn't start with a new instruction!\n#/ Not big of a deal if you know what you're actually doing, just wanna let ya know :3";
+        code += "#/ Owops! This chunk doesn't start with a new instruction!\n#/ Not big of a deal if you know what you're actually doing, just wanna let ya know :3\n";
     }
 
     size_t i = 0;
@@ -313,7 +313,16 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
             case 0x2D: // Argument stack or Global
                 code += "%GLOBAL%";
                 break;
-            case 0x2E: // TODO: Implement jump
+            case 0x2E: // Jump
+                if(i + 4 <= bytes.size()) {
+                    code += "jump[";
+                    int offset = readInt(i, bytes);
+                    code += std::to_string(offset);
+                    code += "]";
+
+                    i += 4;
+                }
+                break;
             case 0x2F: // TODO: Implement random
             case 0x30: // TODO: Implement random range
             case 0x31: // TODO: Implement at
@@ -339,7 +348,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
             case 0x38: // TODO: Implement random range 2
                 break;
             case 0x39: // "Not" condition
-                code += "NOT ";
+                code += " NOT ";
                 break;
             case 0x3C: // Switch expression
                 if (heuristicIndentation) {
@@ -1201,11 +1210,58 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
             }
 
             if (index + 5 <= line.size()) {
+                /*
+                * Operator name: Jump (0x2E)
+                * Operands: Offset
+                * Format: jump[offset]
+                *
+                * Algorithm:
+                * Increase index by 5
+                * Read offset till ']'
+                */
+                if(line[index] == 'j' && line[index + 1] == 'u' && line[index + 2] == 'm' && line[index + 3] == 'p' && line[index + 4] == '[') {
+                    index += 5;
+
+                    std::string stringOffset;
+
+                    while(index < line.size()) {
+                        if(line[index] == ']') {
+                            break;
+                        }
+
+                        stringOffset.push_back(line[index]);
+
+                        index++;
+                    }
+
+                    auto offset = (short) std::stoi(stringOffset);
+
+                    bytes.push_back(0x2E);
+
+                    bytes.push_back(offset & 0xFF);
+                    bytes.push_back((offset >> 8) & 0xFF);
+                }
+
+                /*
+                * Operator name: While (0x20)
+                * Operands: None
+                * Format: while
+                *
+                * Algorithm:
+                * Insert if the next sequence is "while"
+                */
+
+                if(line[index] == 'w' && line[index + 1] == 'h' && line[index + 2] == 'i' && line[index + 3] == 'l' && line[index + 4] == 'e') {
+                    bytes.push_back(0x20);
+
+                    index += 4;
+                }
 
                 /*
                 * Operator name: Else with offset (0x48)
                 * Operands: Offset
                 * Format: else[offset]
+                *
                 * Algorithm:
                 * Increase the index by 5 to skip else[
                 * Read an offset till ']'
@@ -1246,6 +1302,23 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                     bytes.push_back(0x28);
 
                     index += 4;
+                }
+            }
+
+            if(index + 7 <= line.size()) {
+                /*
+                * Operator name: Repeat (0x21)
+                * Operands: None
+                * Format: loop_to
+                *
+                * Algorithm:
+                * Insert if the next sequence is "loop_to"
+                */
+
+                if(line[index] == 'l' && line[index + 1] == 'o' && line[index + 2] == 'o' && line[index + 3] == 'p' && line[index + 4] == '_' && line[index + 5] == 't' && line[index + 6] == 'o') {
+                    bytes.push_back(0x21);
+
+                    index += 6;
                 }
             }
 
