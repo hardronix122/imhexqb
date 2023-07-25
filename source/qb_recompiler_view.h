@@ -18,6 +18,7 @@ private:
     std::map<int32_t, std::string> symbols;
     bool greedySymbolCapture = false;
     bool heuristicIndentation = false;
+    bool oldgen;
     hex::Region selectedRegion{};
 public:
     qb_recompiler_view();

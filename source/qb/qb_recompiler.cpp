@@ -2,11 +2,11 @@
 
 std::string
 qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture,
-                         bool heuristicIndentation) {
+                         bool heuristicIndentation, int generation) {
     std::string code;
 
-    if (bytes[0] != 0x01) {
-        code += "#/ Owops! This chunk doesn't start with a new instruction!\n#/ Not big of a deal if you know what you're actually doing, just wanna let ya know :3\n";
+    if (bytes[0] != 0x01 && generation > 4) {
+        code += "#/ Owops! This chunk doesn't start with a new instruction!\n#/ Not big of a deal if you know what you're actually doing, just wanna let ya know :3";
     }
 
     size_t i = 0;
@@ -20,8 +20,19 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
         switch (byte) {
             case 0x01: // New Instruction
                 code += "\n:i ";
+
+                // If we're dealing with THPS4 or lower, then skip 2 additional bytes
+                if(generation < 5) {
+                    i += 2;
+                }
+
                 break;
-            case 0x02: // End Of Line (unused)
+            case 0x02: // End Of Line
+                // Add a semicolon if dealing with THPS4 or lower
+                if(generation < 5) {
+                    code += ";\n";
+                }
+
                 i += 4; // Skipping line number
                 break;
             case 0x03: // Struct
@@ -229,10 +240,6 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
 
                 break;
             case 0x25: // If
-                if (heuristicIndentation) {
-                    code += "\n";
-                }
-
                 code += "if ";
                 break;
             case 0x26: // Else
@@ -411,17 +418,17 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
         }
 
         lastInstruction = byte;
-
     }
 
     return code;
 }
 
-std::vector<u8> qb_recompiler::compile(std::string &source) {
+std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
     std::vector<u8> bytes = std::vector<u8>();
 
     std::istringstream sourceStream(source);
     std::string line;
+    int lineIndex = 1;
 
     while (std::getline(sourceStream, line)) {
         int index = 0;
@@ -452,6 +459,12 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
 
                 if (line[index] == ':' && line[index + 1] == 'i') {
                     bytes.push_back(0x01);
+
+                    // If we're dealing with THPS4 or lower, then we will also need to add 2 additional bytes
+                    if(generation < 5) {
+                        bytes.push_back(0x00);
+                        bytes.push_back(0x00);
+                    }
                 }
 
                 /*
@@ -1127,6 +1140,34 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                     bytes.push_back(offset & 0xFF);
                     bytes.push_back((offset >> 8) & 0xFF);
                 }
+
+                /*
+                * Operator name: Conditional NOT (0x39)
+                * Operands: None
+                * Format: NOT
+                *
+                * Algorithm:
+                * Insert if the next sequence is "NOT"
+                */
+                if(line[index] == 'N' && line[index + 1] == 'O' && line[index + 2] == 'T') {
+                    bytes.push_back(0x39);
+
+                    index += 2;
+                }
+
+                /*
+                * Operator name: Conditional AND (0x3A)
+                * Operands: None
+                * Format: AND
+                *
+                * Algorithm:
+                * Insert if the next sequence is "AND"
+                */
+                if(line[index] == 'A' && line[index + 1] == 'N' && line[index + 2] == 'D') {
+                    bytes.push_back(0x3A);
+
+                    index += 2;
+                }
             }
 
             if (index + 2 <= line.size()) {
@@ -1140,6 +1181,20 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                 */
                 if (line[index] == 'i' && line[index + 1] == 'f') {
                     bytes.push_back(0x25);
+
+                    index += 1;
+                }
+
+                /*
+                * Operator name: OR (0x3B)
+                * Operands: None
+                * Format: OR
+                *
+                * Algorithm:
+                * Insert if the next sequence is "OR"
+                */
+                if(line[index] == 'O' && line[index + 1] == 'R') {
+                    bytes.push_back(0x3B);
 
                     index += 1;
                 }
@@ -1227,8 +1282,28 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                 }
             }
 
+            /*
+            * Operator name: End Of Line (0x02)
+            * Operands: None
+            * Format: ;
+            *
+            * Algorithm:
+            * Insert if the next symbol is ';'
+            */
+            if(line[index] == ';') {
+                // Then insert the end of line instruction
+                bytes.push_back(0x02);
+
+                bytes.push_back(lineIndex);
+                bytes.push_back((lineIndex) >> 8);
+                bytes.push_back((lineIndex) >> 16);
+                bytes.push_back((lineIndex) >> 24);
+            }
+
             index++;
         }
+
+        lineIndex++;
     }
 
     return bytes;

@@ -3,6 +3,7 @@
 qb_recompiler_view::qb_recompiler_view() : View("Qb Re-compiler") {
     symbols = std::map<int32_t, std::string>();
     text = std::string("#/ Decompiled instructions will appear here");
+    oldgen = false;
 
     EventManager::subscribe<EventRegionSelected>(this, [this](Region region) {
         onRegionSelected(region);
@@ -16,7 +17,7 @@ void qb_recompiler_view::onRegionSelected(hex::Region region) {
     reader.setEndAddress(region.getEndAddress());
 
     text = qb_recompiler::decompile(reader.read(region.getStartAddress(), region.getSize()), symbols,
-                                    greedySymbolCapture, heuristicIndentation);
+                                    greedySymbolCapture, heuristicIndentation, oldgen ? 4 : 5);
     text.resize(text.size() * 2);
     selectedRegion = region;
 }
@@ -30,7 +31,7 @@ void qb_recompiler_view::drawContent() {
             errors.clear();
 
             try {
-                bytes = qb_recompiler::compile(text);
+                bytes = qb_recompiler::compile(text, oldgen ? 4 : 5);
             } catch (qb_exception &exception) {
                 errors.emplace_back(exception.what());
             } catch (std::exception &exception) {
@@ -48,12 +49,6 @@ void qb_recompiler_view::drawContent() {
                 provider->write(selectedRegion.getStartAddress(), bytes.data(), bytes.size());
 
                 ImHexApi::HexEditor::setSelection(selectedRegion.getStartAddress(), bytes.size());
-
-                std::optional<ImHexApi::HexEditor::ProviderRegion> newRegion = ImHexApi::HexEditor::getSelection();
-
-                if (newRegion.has_value()) {
-                    selectedRegion = newRegion->getRegion();
-                }
             }
         }
 
@@ -63,13 +58,17 @@ void qb_recompiler_view::drawContent() {
 
         ImGui::SameLine();
 
-        if (ImGui::Button("Clear checksum names list")) {
+        if (ImGui::Button("Clear names")) {
             symbols.clear();
         }
 
         ImGui::SameLine();
 
         ImGui::Checkbox("Heuristic indentation", &heuristicIndentation);
+
+        ImGui::SameLine();
+
+        ImGui::Checkbox("Oldgen", &oldgen);
 
         ImVec2 errorFieldSize = ImGui::GetWindowSize();
         errorFieldSize.x -= 15;
