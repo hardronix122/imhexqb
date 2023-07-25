@@ -1243,6 +1243,20 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 }
 
                 /*
+                * Operator name: Break (0x22)
+                * Operands: None
+                * Format: break
+                *
+                * Algorithm:
+                * Insert if the next sequence is "break"
+                */
+                if(line[index] == 'b' && line[index + 1] == 'r' && line[index + 2] == 'e' && line[index + 3] == 'a' && line[index + 4] == 'k') {
+                    bytes.push_back(0x22);
+
+                    index += 4;
+                }
+
+                /*
                 * Operator name: While (0x20)
                 * Operands: None
                 * Format: while
