@@ -1,7 +1,8 @@
 #include "qb_recompiler.h"
 
 std::string
-qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture, bool heuristicIndentation) {
+qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture,
+                         bool heuristicIndentation) {
     std::string code;
 
     if (bytes[0] != 0x01) {
@@ -32,19 +33,19 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
             case 0x05: // Array
                 code += ":a{";
 
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
                 break;
             case 0x06: // End Array
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
                 code += ":a}";
 
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
@@ -104,7 +105,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                     }
 
                     // Add a new line if last instruction was function (0x23)
-                    if(heuristicIndentation && lastInstruction == 0x23) {
+                    if (heuristicIndentation && lastInstruction == 0x23) {
                         code += "\n";
                     }
 
@@ -122,7 +123,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 }
                 break;
             case 0x18: // Hex Integer
-                if(i + 4 <= bytes.size()) {
+                if (i + 4 <= bytes.size()) {
                     int value = readInt(i, bytes);
 
                     code += "%i(" + std::to_string(value) + ",";
@@ -209,59 +210,59 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 code += "break";
                 break;
             case 0x23: // Function
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
                 code += "function ";
                 break;
             case 0x24: // End Function
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
                 code += "endfunction";
 
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n\n";
                 }
 
                 break;
             case 0x25: // If
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
                 code += "if ";
                 break;
             case 0x26: // Else
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
                 code += "else";
                 break;
             case 0x27: // Elseif
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
                 code += "elseif";
                 break;
             case 0x28: // Endif
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
                 code += "endif";
 
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
                 break;
             case 0x29: // Return
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
@@ -297,7 +298,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
             case 0x2C: // AllArgs
                 code += " isNull";
 
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
@@ -334,21 +335,21 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 code += "NOT ";
                 break;
             case 0x3C: // Switch expression
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
                 code += "switch ";
                 break;
             case 0x3D: // Endswitch expression
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
                 code += "endswitch";
                 break;
             case 0x3E: // Case expression
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
@@ -357,7 +358,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
             case 0x3F: // Default case expression
                 code += "default";
 
-                if(heuristicIndentation) {
+                if (heuristicIndentation) {
                     code += "\n";
                 }
 
@@ -389,7 +390,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
 
                     code += "else[" + std::to_string(offset) + "] ";
 
-                    if(heuristicIndentation) {
+                    if (heuristicIndentation) {
                         code += "\n";
                     }
                 }
@@ -417,7 +418,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
 }
 
 std::vector<u8> qb_recompiler::compile(std::string &source) {
-    std::vector <u8> bytes = std::vector<u8>();
+    std::vector<u8> bytes = std::vector<u8>();
 
     std::istringstream sourceStream(source);
     std::string line;
@@ -494,11 +495,11 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
 
                 if (line.size() >= 3) {
                     // Make sure there are no de-compilation warnings
-                    if(line[index] == '<' && line[index + 1] == '[' && line[index + 2] == '!') {
+                    if (line[index] == '<' && line[index + 1] == '[' && line[index + 2] == '!') {
                         throw qb_exception("De-compilation warning found!");
                     }
 
-                    if(line[index] == '!' && line[index + 1] == ']' && line[index + 2] == '>') {
+                    if (line[index] == '!' && line[index + 1] == ']' && line[index + 2] == '>') {
                         throw qb_exception("De-compilation warning found!");
                     }
 
@@ -694,7 +695,8 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                     */
 
                     // TODO: Probably replace it with substr comparison, questioning my own existence right now
-                    if (line[index] == '%' && line[index + 1] == 'v' && line[index + 2] == 'e' && line[index + 3] == 'c' && line[index + 4] == '3' && line[index + 5] == '(') {
+                    if (line[index] == '%' && line[index + 1] == 'v' && line[index + 2] == 'e' &&
+                        line[index + 3] == 'c' && line[index + 4] == '3' && line[index + 5] == '(') {
                         index += 6;
 
                         float x;
@@ -703,8 +705,8 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
 
                         std::string tempValue;
 
-                        while(index < line.size()) {
-                            if(line[index] == ',') {
+                        while (index < line.size()) {
+                            if (line[index] == ',') {
                                 index++;
                                 break;
                             }
@@ -718,8 +720,8 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
 
                         tempValue.clear();
 
-                        while(index < line.size()) {
-                            if(line[index] == ',') {
+                        while (index < line.size()) {
+                            if (line[index] == ',') {
                                 index++;
                                 break;
                             }
@@ -733,8 +735,8 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
 
                         tempValue.clear();
 
-                        while(index < line.size()) {
-                            if(line[index] == ')') {
+                        while (index < line.size()) {
+                            if (line[index] == ')') {
                                 break;
                             }
 
@@ -787,7 +789,8 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                     */
 
                     // TODO: Probably replace it with substr comparison too, questioning my own existence right now even more
-                    if (line[index] == '%' && line[index + 1] == 'v' && line[index + 2] == 'e' && line[index + 3] == 'c' && line[index + 4] == '2' && line[index + 5] == '(') {
+                    if (line[index] == '%' && line[index + 1] == 'v' && line[index + 2] == 'e' &&
+                        line[index + 3] == 'c' && line[index + 4] == '2' && line[index + 5] == '(') {
                         index += 6;
 
                         float x;
@@ -795,8 +798,8 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
 
                         std::string tempValue;
 
-                        while(index < line.size()) {
-                            if(line[index] == ',') {
+                        while (index < line.size()) {
+                            if (line[index] == ',') {
                                 index++;
                                 break;
                             }
@@ -810,8 +813,8 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
 
                         tempValue.clear();
 
-                        while(index < line.size()) {
-                            if(line[index] == ')') {
+                        while (index < line.size()) {
+                            if (line[index] == ')') {
                                 break;
                             }
 
@@ -892,7 +895,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                 * Algorithm:
                 * Insert if the next sequence is "isNull"
                 */
-                if(line.substr(index, 6) == "isNull") {
+                if (line.substr(index, 6) == "isNull") {
                     bytes.push_back(0x2C);
                     index += 5;
                 }
@@ -1047,7 +1050,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                 bytes.push_back(0x14);
             }
 
-            if(index + 8 <= line.size()) {
+            if (index + 8 <= line.size()) {
                 /*
                 * Operator name: Function [0x23]
                 * Operands: None
@@ -1069,7 +1072,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                 * Algorithm:
                 * Insert if the next sequence is %GLOBAL%
                 */
-                if(line.substr(index, 8) == "%GLOBAL%") {
+                if (line.substr(index, 8) == "%GLOBAL%") {
                     bytes.push_back(0x2D);
                     index += 7;
                 }
@@ -1084,14 +1087,14 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
             * Insert if the next sequence is "endfunction"
             */
 
-            if(index + 11 <= line.size()) {
+            if (index + 11 <= line.size()) {
                 if (line.substr(index, 11) == "endfunction") {
                     bytes.push_back(0x24);
                     index += 10;
                 }
             }
 
-            if(index + 3 <= line.size()) {
+            if (index + 3 <= line.size()) {
                 /*
                 * Operator name: If with offset (0x47)
                 * Operands: Offset
@@ -1101,13 +1104,13 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                 * Increase index by 3 to skip if[
                 * Read the offset until ']'
                 */
-                if(line[index] == 'i' && line[index + 1] == 'f' && line[index + 2] == '[') {
+                if (line[index] == 'i' && line[index + 1] == 'f' && line[index + 2] == '[') {
                     index += 3;
 
                     std::string stringOffset;
 
-                    while(line.size() > index) {
-                        if(line[index] == ']') {
+                    while (line.size() > index) {
+                        if (line[index] == ']') {
                             break;
                         }
 
@@ -1126,7 +1129,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                 }
             }
 
-            if(index + 2 <= line.size()) {
+            if (index + 2 <= line.size()) {
                 /*
                 * Operator name: If (0x25)
                 * Operands: None
@@ -1135,14 +1138,45 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                 * Algorithm:
                 * Insert if the next sequence is "if"
                 */
-                if(line[index] == 'i' && line[index + 1] == 'f') {
+                if (line[index] == 'i' && line[index + 1] == 'f') {
                     bytes.push_back(0x25);
 
                     index += 1;
                 }
             }
 
-            if(index + 5 <= line.size()) {
+            if (index + 5 <= line.size()) {
+
+                /*
+                * Operator name: Else with offset (0x48)
+                * Operands: Offset
+                * Format: else[offset]
+                * Algorithm:
+                * Increase the index by 5 to skip else[
+                * Read an offset till ']'
+                */
+                if(line[index] == 'e' && line[index + 1] == 'l' && line[index + 2] == 's' && line[index + 3] == 'e' && line[index + 4] == '[') {
+                    index += 5;
+
+                    std::string stringOffset;
+
+                    while(index < line.size()) {
+                        if(line[index] == ']') {
+                            break;
+                        }
+
+                        stringOffset.push_back(line[index]);
+
+                        index++;
+                    }
+
+                    auto offset = (short) std::stoi(stringOffset);
+
+                    bytes.push_back(0x48);
+
+                    bytes.push_back(offset & 0xFF);
+                    bytes.push_back((offset >> 8) & 0xFF);
+                }
 
                 /*
                 * Operator name: If End (0x28)
@@ -1152,11 +1186,44 @@ std::vector<u8> qb_recompiler::compile(std::string &source) {
                 * Algorithm:
                 * Insert if the next sequence is "endif"
                 */
-
-                if(line[index] == 'e' && line[index + 1] == 'n' && line[index + 2] == 'd' && line[index + 3] == 'i' && line[index + 4] == 'f') {
+                if (line[index] == 'e' && line[index + 1] == 'n' && line[index + 2] == 'd' && line[index + 3] == 'i' &&
+                    line[index + 4] == 'f') {
                     bytes.push_back(0x28);
 
                     index += 4;
+                }
+            }
+
+            if(index + 6 <= line.size()) {
+                /*
+                * Operator name: Else If (0x27)
+                * Operands: None
+                * Format: elseif
+                *
+                * Algorithm:
+                * Insert if the next sequence is "elseif"
+                */
+
+                if(line[index] == 'e' && line[index + 1] == 'l' && line[index + 2] == 's' && line[index + 3] == 'e' && line[index + 4] == 'i' && line[index + 5] == 'f') {
+                    bytes.push_back(0x27);
+
+                    index += 5;
+                }
+            }
+
+            if (index + 4 <= line.size()) {
+                /*
+                * Operator name: Else (0x26)
+                * Operands: None
+                * Format: else
+                *
+                * Algorithm:
+                * Insert if the next sequence is "else"
+                */
+                if (line[index] == 'e' && line[index + 1] == 'l' && line[index + 2] == 's' && line[index + 3] == 'e') {
+                    bytes.push_back(0x26);
+
+                    index += 3;
                 }
             }
 
