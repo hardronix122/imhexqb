@@ -1512,30 +1512,6 @@ std::vector<u8> QbRecompiler::compile(std::string &source, int generation) {
                 bytes.push_back((lineIndex) >> 24);
             }
 
-            /*
-            * Operator name: Open parenthesis [0x0E]
-            * Operands: None
-            * Format: (
-            *
-            * Algorithm:
-            * Insert if the next symbol is '('
-            */
-            if (line[index] == '(') {
-                bytes.push_back(0x0E);
-            }
-
-            /*
-            * Operator name: Close parenthesis [0x0F]
-            * Operands: None
-            * Format: )
-            *
-            * Algorithm:
-            * Insert if the next symbol is ')'
-            */
-            if (line[index] == ')') {
-                bytes.push_back(0x0F);
-            }
-
             index++;
         }
 
