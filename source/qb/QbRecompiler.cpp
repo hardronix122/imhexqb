@@ -84,10 +84,7 @@ QbRecompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &s
                 code += " / ";
                 break;
             case 0xE: // Open parenthesis
-                code += "(";
-                break;
             case 0xF: // Close parenthesis
-                code += ")";
                 break;
             case 0x10: // Never? Whatever..
                 code += "<[!This instruction shouldn't be here!]>";
