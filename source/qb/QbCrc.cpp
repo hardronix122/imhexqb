@@ -1,4 +1,4 @@
-#include "qb_crc.h"
+#include "QbCrc.h"
 
 static unsigned long POLYNOMIAL_TABLE[256] =
         {
@@ -68,7 +68,7 @@ static unsigned long POLYNOMIAL_TABLE[256] =
                 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
         };
 
-unsigned long qb_crc::generate(std::string text) {
+unsigned long QbCrc::generate(std::string text) {
     unsigned long checksum = 0xFFFFFFFF;
 
     // Make text lowercase

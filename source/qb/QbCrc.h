@@ -4,7 +4,7 @@
 #include <string>
 #include <algorithm>
 
-class qb_crc {
+class QbCrc {
 public:
     static unsigned long generate(std::string text);
 };

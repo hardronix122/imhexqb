@@ -1,16 +1,17 @@
-#include "qb_recompiler.h"
+#include "QbRecompiler.h"
 
 std::string
-qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture,
-                         bool heuristicIndentation, int generation) {
+QbRecompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture,
+                        bool heuristicIndentation, int generation) {
     std::string code;
 
     if (bytes[0] != 0x01 && generation > 4) {
         code += "#/ Owops! This chunk doesn't start with a new instruction!\n#/ Not big of a deal if you know what you're actually doing, just wanna let ya know :3\n";
     }
 
-    size_t i = 0;
+    int i = 0;
     u8 lastInstruction;
+    bool insideCase;
 
     while (i < bytes.size()) {
         u8 byte = bytes[i];
@@ -22,14 +23,14 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 code += "\n:i ";
 
                 // If we're dealing with THPS4 or lower, then skip 2 additional bytes
-                if(generation < 5) {
+                if (generation < 5) {
                     i += 2;
                 }
 
                 break;
             case 0x02: // End Of Line
                 // Add a semicolon if dealing with THPS4 or lower
-                if(generation < 5) {
+                if (generation < 5) {
                     code += ";\n";
                 }
 
@@ -82,8 +83,11 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
             case 0xD: // Divide
                 code += " / ";
                 break;
-            case 0xE: // Nesting increase
-            case 0xF: // Nesting decrease
+            case 0xE: // Open parenthesis
+                code += "(";
+                break;
+            case 0xF: // Close parenthesis
+                code += ")";
                 break;
             case 0x10: // Never? Whatever..
                 code += "<[!This instruction shouldn't be here!]>";
@@ -105,7 +109,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 break;
             case 0x16: // Checksum
                 if (i + 4 <= bytes.size()) {
-                    int checksum = readInvInt(i, bytes);
+                    int checksum = DataHelper::readReversedInteger(i, bytes);
 
                     if (symbols.contains(checksum)) {
                         code += "$" + symbols[checksum] + "$";
@@ -119,23 +123,19 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                     if (heuristicIndentation && lastInstruction == 0x23) {
                         code += "\n";
                     }
-
-                    i += 4;
                 }
 
                 break;
             case 0x17: // Long integer
                 if (i + 4 <= bytes.size()) {
-                    int value = readInt(i, bytes);
+                    int value = DataHelper::readInteger(i, bytes);
 
                     code += "%i(" + std::to_string(value) + ",00000000)";
-
-                    i += 4;
                 }
                 break;
             case 0x18: // Hex Integer
                 if (i + 4 <= bytes.size()) {
-                    int value = readInt(i, bytes);
+                    int value = DataHelper::readInteger(i, bytes);
 
                     code += "%i(" + std::to_string(value) + ",";
 
@@ -143,15 +143,13 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                     ss << std::setfill('0') << std::setw(sizeof(int) * 2) << std::hex << value;
 
                     code += ss.str() + ')';
-
-                    i += 4;
                 }
                 break;
             case 0x19: // TODO: Implement enum
                 break;
             case 0x1A: // Single float
                 if (i + 4 <= bytes.size()) {
-                    float value = readFloat(i, bytes);
+                    float value = DataHelper::readFloat(i, bytes);
 
                     code += "%f(" + std::to_string(value) + ")";
 
@@ -162,11 +160,9 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
             case 0x1B: // String
             case 0x1C: // String
                 if (i + 4 <= bytes.size()) {
-                    int size = readInt(i, bytes);
+                    int size = DataHelper::readInteger(i, bytes);
 
                     code += "%s(" + std::to_string(size) + ", ";
-
-                    i += 4;
 
                     std::string value;
 
@@ -189,11 +185,11 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 break;
             case 0x1E: // Vector
                 if (i + 12 <= bytes.size()) {
-                    float x = readFloat(i, bytes);
+                    float x = DataHelper::readFloat(i, bytes);
                     i += 4;
-                    float y = readFloat(i, bytes);
+                    float y = DataHelper::readFloat(i, bytes);
                     i += 4;
-                    float z = readFloat(i, bytes);
+                    float z = DataHelper::readFloat(i, bytes);
                     i += 4;
 
                     code += "%vec3(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")";
@@ -202,9 +198,9 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 break;
             case 0x1F: // Pair
                 if (i + 8 <= bytes.size()) {
-                    float x = readFloat(i, bytes);
+                    float x = DataHelper::readFloat(i, bytes);
                     i += 4;
-                    float y = readFloat(i, bytes);
+                    float y = DataHelper::readFloat(i, bytes);
                     i += 4;
 
                     code += "%vec2(" + std::to_string(x) + ", " + std::to_string(y) + ")";
@@ -279,8 +275,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 break;
             case 0x2B: // Symbol entry
                 if (i + 4 <= bytes.size()) {
-                    int checksum = readInvInt(i, bytes);
-                    i += 4;
+                    int checksum = DataHelper::readReversedInteger(i, bytes);
 
                     std::string name;
 
@@ -314,13 +309,11 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 code += "%GLOBAL%";
                 break;
             case 0x2E: // Jump
-                if(i + 4 <= bytes.size()) {
+                if (i + 4 <= bytes.size()) {
                     code += "jump[";
-                    int offset = readInt(i, bytes);
+                    int offset = DataHelper::readInteger(i, bytes);
                     code += std::to_string(offset);
                     code += "]";
-
-                    i += 4;
                 }
                 break;
             case 0x2F: // TODO: Implement random
@@ -335,8 +328,8 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
             case 0x3A: // "And" condition
                 code += " AND ";
                 break;
-            case 0x34: // "Or"? condition
-                code += " OR ? ";
+            case 0x34: // XOR condition
+                code += " XOR ";
                 break;
             case 0x35: // Shift left
                 code += " << ";
@@ -357,17 +350,29 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
 
                 code += "switch ";
                 break;
-            case 0x3D: // Endswitch expression
+            case 0x3D: // End Switch expression
                 if (heuristicIndentation) {
                     code += "\n";
                 }
 
-                code += "endswitch";
+                insideCase = false;
+
+                code += "end_switch";
                 break;
             case 0x3E: // Case expression
                 if (heuristicIndentation) {
                     code += "\n";
                 }
+
+                if (insideCase) {
+                    if (lastInstruction != 0x01 && lastInstruction != 0x49) {
+                        code += " ";
+                    }
+
+                    code += "endcase\n";
+                }
+
+                insideCase = true;
 
                 code += "case ";
                 break;
@@ -379,20 +384,25 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 }
 
                 break;
-            case 0x40: // TODO: Implement random. Won't merge it with previous, as it might be different
-            case 0x41: // TODO: Implement random for this one too
+            case 0x40: // Random (no repeat)
+                code += "no_repeat_random";
+                break;
+            case 0x41: // Random permute
+                code += "random_permute";
                 break;
             case 0x42: // Colon
                 code += ".";
                 break;
-            case 0x43: // TODO: Never used
-            case 0x44: // TODO: Never used
+            case 0x43: // Runtime c-function
+                code += " c_function ";
+            case 0x44: // Runtime member function
+                code += " member_function ";
             case 0x45: // TODO: Unknown
             case 0x46: // TODO: Unknown
                 break;
             case 0x47: // If expression with short offset
                 if (i + 2 <= bytes.size()) {
-                    short offset = readShort(i, bytes); // TODO: Figure out what that offset is used for
+                    short offset = DataHelper::readShort(i, bytes); // TODO: Figure out what that offset is used for
                     i += 2;
 
                     code += "if[" + std::to_string(offset) + "] ";
@@ -401,7 +411,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 break;
             case 0x48: // Else expression with short offset
                 if (i + 2 <= bytes.size()) {
-                    short offset = readShort(i, bytes); // TODO: Figure out what that offset is used for
+                    short offset = DataHelper::readShort(i, bytes); // TODO: Figure out what that offset is used for
                     i += 2;
 
                     code += "else[" + std::to_string(offset) + "] ";
@@ -414,7 +424,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
                 break;
             case 0x49: // Short break
                 if (i + 2 <= bytes.size()) {
-                    short offset = readShort(i, bytes); // TODO: Figure out what that offset is used for
+                    short offset = DataHelper::readShort(i, bytes); // TODO: Figure out what that offset is used for
                     i += 2;
 
                     code += "shortbreak[" + std::to_string(offset) + "] ";
@@ -432,7 +442,7 @@ qb_recompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &
     return code;
 }
 
-std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
+std::vector<u8> QbRecompiler::compile(std::string &source, int generation) {
     std::vector<u8> bytes = std::vector<u8>();
 
     std::istringstream sourceStream(source);
@@ -470,7 +480,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                     bytes.push_back(0x01);
 
                     // If we're dealing with THPS4 or lower, then we will also need to add 2 additional bytes
-                    if(generation < 5) {
+                    if (generation < 5) {
                         bytes.push_back(0x00);
                         bytes.push_back(0x00);
                     }
@@ -518,11 +528,11 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 if (line.size() >= 3) {
                     // Make sure there are no de-compilation warnings
                     if (line[index] == '<' && line[index + 1] == '[' && line[index + 2] == '!') {
-                        throw qb_exception("De-compilation warning found!");
+                        throw QbException("De-compilation warning found!");
                     }
 
                     if (line[index] == '!' && line[index + 1] == ']' && line[index + 2] == '>') {
-                        throw qb_exception("De-compilation warning found!");
+                        throw QbException("De-compilation warning found!");
                     }
 
                     /*
@@ -950,7 +960,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                     index++;
                 }
 
-                unsigned long checksum = qb_crc::generate(checksum_name);
+                unsigned long checksum = QbCrc::generate(checksum_name);
 
                 bytes.push_back(0x16);
 
@@ -1100,19 +1110,54 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 }
             }
 
-            /*
-            * Operator name: End Function [0x24]
-            * Operands: None
-            * Format: endfunction
-            *
-            * Algorithm:
-            * Insert if the next sequence is "endfunction"
-            */
-
             if (index + 11 <= line.size()) {
+                /*
+                * Operator name: End Function [0x24]
+                * Operands: None
+                * Format: endfunction
+                *
+                * Algorithm:
+                * Insert if the next sequence is "endfunction"
+                */
+
                 if (line.substr(index, 11) == "endfunction") {
                     bytes.push_back(0x24);
                     index += 10;
+                }
+
+                /*
+                * Operator name: Short Break [0x49]
+                * Operands: Offset
+                * Format: shortbreak[offset]
+                *
+                * Algorithm:
+                * Increase index by 11 to skip shortbreak[
+                * Read offset until ]
+                */
+
+                if (line.substr(index, 11) == "shortbreak[") {
+                    index += 11;
+
+                    std::string stringOffset;
+
+                    while (line.size() > index) {
+                        if (line[index] == ']') {
+                            break;
+                        }
+
+                        stringOffset.push_back(line[index]);
+
+                        index++;
+                    }
+
+                    auto offset = (short) std::stoi(stringOffset);
+
+                    // TODO: Temporary solution for debugging purposes
+                    bytes.push_back(0x49);
+
+                    bytes.push_back(offset & 0xFF);
+                    bytes.push_back((offset >> 8) & 0xFF);
+
                 }
             }
 
@@ -1158,7 +1203,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 * Algorithm:
                 * Insert if the next sequence is "NOT"
                 */
-                if(line[index] == 'N' && line[index + 1] == 'O' && line[index + 2] == 'T') {
+                if (line[index] == 'N' && line[index + 1] == 'O' && line[index + 2] == 'T') {
                     bytes.push_back(0x39);
 
                     index += 2;
@@ -1172,7 +1217,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 * Algorithm:
                 * Insert if the next sequence is "AND"
                 */
-                if(line[index] == 'A' && line[index + 1] == 'N' && line[index + 2] == 'D') {
+                if (line[index] == 'A' && line[index + 1] == 'N' && line[index + 2] == 'D') {
                     bytes.push_back(0x3A);
 
                     index += 2;
@@ -1202,7 +1247,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 * Algorithm:
                 * Insert if the next sequence is "OR"
                 */
-                if(line[index] == 'O' && line[index + 1] == 'R') {
+                if (line[index] == 'O' && line[index + 1] == 'R') {
                     bytes.push_back(0x3B);
 
                     index += 1;
@@ -1219,13 +1264,14 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 * Increase index by 5
                 * Read offset till ']'
                 */
-                if(line[index] == 'j' && line[index + 1] == 'u' && line[index + 2] == 'm' && line[index + 3] == 'p' && line[index + 4] == '[') {
+                if (line[index] == 'j' && line[index + 1] == 'u' && line[index + 2] == 'm' && line[index + 3] == 'p' &&
+                    line[index + 4] == '[') {
                     index += 5;
 
                     std::string stringOffset;
 
-                    while(index < line.size()) {
-                        if(line[index] == ']') {
+                    while (index < line.size()) {
+                        if (line[index] == ']') {
                             break;
                         }
 
@@ -1250,7 +1296,8 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 * Algorithm:
                 * Insert if the next sequence is "break"
                 */
-                if(line[index] == 'b' && line[index + 1] == 'r' && line[index + 2] == 'e' && line[index + 3] == 'a' && line[index + 4] == 'k') {
+                if (line[index] == 'b' && line[index + 1] == 'r' && line[index + 2] == 'e' && line[index + 3] == 'a' &&
+                    line[index + 4] == 'k') {
                     bytes.push_back(0x22);
 
                     index += 4;
@@ -1265,7 +1312,8 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 * Insert if the next sequence is "while"
                 */
 
-                if(line[index] == 'w' && line[index + 1] == 'h' && line[index + 2] == 'i' && line[index + 3] == 'l' && line[index + 4] == 'e') {
+                if (line[index] == 'w' && line[index + 1] == 'h' && line[index + 2] == 'i' && line[index + 3] == 'l' &&
+                    line[index + 4] == 'e') {
                     bytes.push_back(0x20);
 
                     index += 4;
@@ -1280,13 +1328,14 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 * Increase the index by 5 to skip else[
                 * Read an offset till ']'
                 */
-                if(line[index] == 'e' && line[index + 1] == 'l' && line[index + 2] == 's' && line[index + 3] == 'e' && line[index + 4] == '[') {
+                if (line[index] == 'e' && line[index + 1] == 'l' && line[index + 2] == 's' && line[index + 3] == 'e' &&
+                    line[index + 4] == '[') {
                     index += 5;
 
                     std::string stringOffset;
 
-                    while(index < line.size()) {
-                        if(line[index] == ']') {
+                    while (index < line.size()) {
+                        if (line[index] == ']') {
                             break;
                         }
 
@@ -1319,7 +1368,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 }
             }
 
-            if(index + 7 <= line.size()) {
+            if (index + 7 <= line.size()) {
                 /*
                 * Operator name: Repeat [0x21]
                 * Operands: None
@@ -1329,14 +1378,44 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 * Insert if the next sequence is "loop_to"
                 */
 
-                if(line[index] == 'l' && line[index + 1] == 'o' && line[index + 2] == 'o' && line[index + 3] == 'p' && line[index + 4] == '_' && line[index + 5] == 't' && line[index + 6] == 'o') {
+                if (line[index] == 'l' && line[index + 1] == 'o' && line[index + 2] == 'o' && line[index + 3] == 'p' &&
+                    line[index + 4] == '_' && line[index + 5] == 't' && line[index + 6] == 'o') {
                     bytes.push_back(0x21);
 
                     index += 6;
                 }
+
+                /*
+                * Operator name: Default Case [0x3F]
+                * Operands: None
+                * Format: default
+                *
+                * Algorithm:
+                * Insert if the next sequence is "default"
+                */
+
+                if (line[index] == 'd' && line[index + 1] == 'e' && line[index + 2] == 'f' && line[index + 3] == 'a' &&
+                    line[index + 4] == 'u' && line[index + 5] == 'l' && line[index + 6] == 't') {
+                    bytes.push_back(0x3F);
+
+                    index += 6;
+                }
+
+                /*
+                * Operator name: End Case [Internal]
+                * Operands: None
+                *
+                * Algorithm:
+                * Skip if the next sequence is "endcase"
+                */
+
+                if (line[index] == 'e' && line[index + 1] == 'n' && line[index + 2] == 'd' && line[index + 3] == 'c' &&
+                    line[index + 4] == 'a' && line[index + 5] == 's' && line[index + 6] == 'e') {
+                    index += 6;
+                }
             }
 
-            if(index + 6 <= line.size()) {
+            if (index + 6 <= line.size()) {
                 /*
                 * Operator name: Else If [0x27]
                 * Operands: None
@@ -1346,8 +1425,24 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 * Insert if the next sequence is "elseif"
                 */
 
-                if(line[index] == 'e' && line[index + 1] == 'l' && line[index + 2] == 's' && line[index + 3] == 'e' && line[index + 4] == 'i' && line[index + 5] == 'f') {
+                if (line[index] == 'e' && line[index + 1] == 'l' && line[index + 2] == 's' && line[index + 3] == 'e' &&
+                    line[index + 4] == 'i' && line[index + 5] == 'f') {
                     bytes.push_back(0x27);
+
+                    index += 5;
+                }
+
+                /*
+                * Operator name: Switch [0x3C]
+                * Operands: None
+                * Format: switch
+                *
+                * Algorithm:
+                * Insert if the next sequence is "switch"
+                */
+                if (line[index] == 's' && line[index + 1] == 'w' && line[index + 2] == 'i' && line[index + 3] == 't' &&
+                    line[index + 4] == 'c' && line[index + 5] == 'h') {
+                    bytes.push_back(0x3C);
 
                     index += 5;
                 }
@@ -1367,6 +1462,39 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
 
                     index += 3;
                 }
+
+                /*
+                * Operator name: Case [0x3E]
+                * Operands: None
+                * Format: case
+                *
+                * Algorithm:
+                * Insert if the next sequence is "case"
+                */
+                if (line[index] == 'c' && line[index + 1] == 'a' && line[index + 2] == 's' && line[index + 3] == 'e') {
+                    bytes.push_back(0x3E);
+
+                    index += 3;
+                }
+            }
+
+            if (index + 10 <= line.size()) {
+                /*
+                * Operator name: End Switch [0x3D]
+                * Operands: None
+                * Format: end_switch
+                *
+                * Algorithm:
+                * Insert if the next sequence is "end_switch"
+                */
+                if (line[index] == 'e' && line[index + 1] == 'n' && line[index + 2] == 'd' && line[index + 3] == '_' &&
+                    line[index + 4] == 's' && line[index + 5] == 'w' && line[index + 6] == 'i' &&
+                    line[index + 7] == 't' && line[index + 8] == 'c' && line[index + 9] == 'h') {
+
+                    bytes.push_back(0x3D);
+
+                    index += 9;
+                }
             }
 
             /*
@@ -1377,7 +1505,7 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
             * Algorithm:
             * Insert if the next symbol is ';'
             */
-            if(line[index] == ';') {
+            if (line[index] == ';') {
                 // Then insert the end of line instruction
                 bytes.push_back(0x02);
 
@@ -1387,6 +1515,30 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
                 bytes.push_back((lineIndex) >> 24);
             }
 
+            /*
+            * Operator name: Open parenthesis [0x0E]
+            * Operands: None
+            * Format: (
+            *
+            * Algorithm:
+            * Insert if the next symbol is '('
+            */
+            if (line[index] == '(') {
+                bytes.push_back(0x0E);
+            }
+
+            /*
+            * Operator name: Close parenthesis [0x0F]
+            * Operands: None
+            * Format: )
+            *
+            * Algorithm:
+            * Insert if the next symbol is ')'
+            */
+            if (line[index] == ')') {
+                bytes.push_back(0x0F);
+            }
+
             index++;
         }
 
@@ -1394,53 +1546,4 @@ std::vector<u8> qb_recompiler::compile(std::string &source, int generation) {
     }
 
     return bytes;
-}
-
-float qb_recompiler::readFloat(size_t offset, std::vector<u8> bytes) {
-    u8 b1 = bytes[offset];
-    u8 b2 = bytes[offset + 1];
-    u8 b3 = bytes[offset + 2];
-    u8 b4 = bytes[offset + 3];
-
-    float value;
-    u8 value_bytes[] = {b1, b2, b3, b4};
-    memcpy(&value, &value_bytes, sizeof(int32_t));
-
-    return value;
-}
-
-int qb_recompiler::readInt(size_t offset, std::vector<u8> bytes) {
-    u8 b1 = bytes[offset];
-    u8 b2 = bytes[offset + 1];
-    u8 b3 = bytes[offset + 2];
-    u8 b4 = bytes[offset + 3];
-
-    int value;
-    u8 value_bytes[] = {b1, b2, b3, b4};
-    memcpy(&value, &value_bytes, sizeof(int32_t));
-
-    return value;
-}
-
-int qb_recompiler::readInvInt(size_t offset, std::vector<u8> bytes) {
-    u8 b1 = bytes[offset + 3];
-    u8 b2 = bytes[offset + 2];
-    u8 b3 = bytes[offset + 1];
-    u8 b4 = bytes[offset];
-
-    int value;
-    u8 value_bytes[] = {b1, b2, b3, b4};
-    memcpy(&value, &value_bytes, sizeof(int32_t));
-
-    return value;
-}
-
-short qb_recompiler::readShort(size_t offset, std::vector<u8> bytes) {
-    u8 b1 = bytes[offset];
-    u8 b2 = bytes[offset + 1];
-
-    short value;
-    u8 value_bytes[] = {b1, b2};
-    memcpy(&value, &value_bytes, sizeof(short));
-    return value;
 }

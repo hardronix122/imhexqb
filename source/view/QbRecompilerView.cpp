@@ -1,6 +1,6 @@
-#include "qb_recompiler_view.h"
+#include "QbRecompilerView.h"
 
-qb_recompiler_view::qb_recompiler_view() : View("Qb Re-compiler") {
+QbRecompilerView::QbRecompilerView() : View("Qb Re-compiler") {
     symbols = std::map<int32_t, std::string>();
     text = std::string("#/ Decompiled instructions will appear here");
     oldgen = false;
@@ -10,19 +10,19 @@ qb_recompiler_view::qb_recompiler_view() : View("Qb Re-compiler") {
     });
 }
 
-void qb_recompiler_view::onRegionSelected(hex::Region region) {
+void QbRecompilerView::onRegionSelected(hex::Region region) {
     auto provider = ImHexApi::Provider::get();
 
     auto reader = prv::ProviderReader(provider);
     reader.setEndAddress(region.getEndAddress());
 
-    text = qb_recompiler::decompile(reader.read(region.getStartAddress(), region.getSize()), symbols,
-                                    greedySymbolCapture, heuristicIndentation, oldgen ? 4 : 5);
+    text = QbRecompiler::decompile(reader.read(region.getStartAddress(), region.getSize()), symbols,
+                                   greedySymbolCapture, heuristicIndentation, oldgen ? 4 : 5);
     text.resize(text.size() * 2);
     selectedRegion = region;
 }
 
-void qb_recompiler_view::drawContent() {
+void QbRecompilerView::drawContent() {
     if (ImGui::Begin("QB Re-compiler")) {
         if (ImGui::Button("Compile")) {
             std::vector<u8> bytes;
@@ -31,8 +31,8 @@ void qb_recompiler_view::drawContent() {
             errors.clear();
 
             try {
-                bytes = qb_recompiler::compile(text, oldgen ? 4 : 5);
-            } catch (qb_exception &exception) {
+                bytes = QbRecompiler::compile(text, oldgen ? 4 : 5);
+            } catch (QbException &exception) {
                 errors.emplace_back(exception.what());
             } catch (std::exception &exception) {
                 errors.emplace_back(exception.what());

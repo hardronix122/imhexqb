@@ -78,3 +78,7 @@ Almost everything, except for:
 + Plus
 + Multiply
 + Divide
++ Switch
++ Case
++ Default
++ End Switch
