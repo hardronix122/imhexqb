@@ -314,8 +314,13 @@ QbRecompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &s
                 }
                 break;
             case 0x2F: // TODO: Implement random
+                code += "<[!Random (0x2F) is not implemented yet!]>";
+                break;
             case 0x30: // TODO: Implement random range
+                code += "<[!Random range (0x30) is not implemented yet!]>";
+                break;
             case 0x31: // TODO: Implement at
+                code += "<[!At (0x31) is not implemented yet!]>";
                 break;
             case 0x32: // "Or" condition
             case 0x3B: // "Or" condition
@@ -335,7 +340,10 @@ QbRecompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &s
                 code += " >> ";
                 break;
             case 0x37: // TODO: Implement random 2
+                code += "<[!Random 2 (0x37) is not implemented yet!]>";
+                break;
             case 0x38: // TODO: Implement random range 2
+                code += "<[!Random range (0x38) is not implemented yet!]>";
                 break;
             case 0x39: // "Not" condition
                 code += " NOT ";
