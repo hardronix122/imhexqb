@@ -47,7 +47,6 @@ Almost everything, except for:
 
 + Random
 + Random range
-+ Switch cases
 + Goto
 + At
 
