@@ -7,8 +7,10 @@ ChecksumDictionary::ChecksumDictionary() {
 
 std::string ChecksumDictionary::getDictionaryPath() {
     std::filesystem::path basePath = hex::fs::getDefaultPaths(hex::fs::ImHexPath::Config, false)[0];
+    std::filesystem::path config = "imhexqb_dictionary.json";
+    std::filesystem::path configPath = basePath / config;
 
-    return basePath / "imhexqb_dictionary.json";
+    return configPath.string();
 }
 
 ChecksumDictionary ChecksumDictionary::load(const std::string& path) {
@@ -33,8 +35,6 @@ ChecksumDictionary ChecksumDictionary::load(const std::string& path) {
     }
 
     std::map<uint32_t, std::string> dict = json["checksums"];
-
-    printf("\n\nDone! Got %d entries.\n", dict.size());
 
     return ChecksumDictionary(dict);
 }
