@@ -31,18 +31,33 @@ ChecksumDictionary ChecksumDictionary::load(const std::string& path) {
     nlohmann::basic_json json = nlohmann::json::parse(buf.str());
 
     if (!json.contains("checksums")) {
-        json["checksums"] = std::map<uint64_t, std::string>();
+        json["checksums"] = std::map<std::string, std::string>();
     }
 
-    std::map<uint64_t, std::string> dict = json["checksums"];
+    std::map<std::string, std::string> dict = json["checksums"];
 
-    return ChecksumDictionary(dict);
+    std::map<uint64_t, std::string> target;
+
+    for(auto const& [key, value] : dict) {
+        target.insert({std::stoul(key, nullptr, 16), value});
+    }
+
+    return ChecksumDictionary(target);
 }
 
 void ChecksumDictionary::save(const std::string& path) {
     nlohmann::basic_json json;
 
-    json["checksums"] = dictionary;
+    std::map<std::string, std::string> dict;
+
+    for(auto const& [key, value] : dictionary) {
+        std::stringstream ss;
+        ss << std::setfill('0') << std::setw(sizeof(int) * 2) << std::hex << key;
+
+        dict.insert({ss.str(), value});
+    }
+
+    json["checksums"] = dict;
     std::ofstream data(path);
     data << json;
 
