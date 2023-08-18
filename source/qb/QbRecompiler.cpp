@@ -108,9 +108,6 @@ QbRecompiler::decompile(std::vector<u8> bytes, ChecksumDictionary &symbols, bool
                 if (i + 4 <= bytes.size()) {
                     int checksum = DataHelper::readReversedInteger(i, bytes);
 
-                    printf("Is checksum the one we need? %b\n", checksum == 0x99a2a82c);
-                    printf("Do we contain it? %b\n", symbols.contains(checksum));
-
                     if (symbols.contains(checksum)) {
                         code += "$" + symbols.resolve(checksum) + "$";
                     } else {

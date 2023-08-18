@@ -39,7 +39,6 @@ ChecksumDictionary ChecksumDictionary::load(const std::string& path) {
     std::map<uint32_t, std::string> target;
 
     for(auto const& [key, value] : dict) {
-        printf("%lu - %s\n", std::stoul(key, nullptr, 16), value.c_str());
         target.insert({std::stoul(key, nullptr, 16), value});
     }
 
@@ -54,8 +53,6 @@ void ChecksumDictionary::save(const std::string& path) {
     for(auto const& [key, value] : dictionary) {
         std::stringstream ss;
         ss << std::setfill('0') << std::setw(sizeof(int) * 2) << std::hex << key;
-
-        printf("%s - %s\n", ss.str().c_str(), value.c_str());
 
         dict.insert({ss.str(), value});
     }
