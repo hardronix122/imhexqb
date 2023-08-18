@@ -9,17 +9,17 @@
 class ChecksumDictionary {
 public:
     ChecksumDictionary();
-    explicit ChecksumDictionary(const std::map<uint32_t, std::string> &dictionary);
+    explicit ChecksumDictionary(const std::map<uint64_t, std::string> &dictionary);
 
     static std::string getDictionaryPath();
     static ChecksumDictionary load(const std::string& path);
     void save(const std::string& path);
 
-    void populate(uint32_t value, std::string name);
-    bool contains(uint32_t value);
-    std::string resolve(uint32_t checksum);
+    void populate(uint64_t value, const std::string& name);
+    bool contains(uint64_t value);
+    std::string resolve(uint64_t checksum);
 private:
-    std::map<uint32_t, std::string> dictionary;
+    std::map<uint64_t, std::string> dictionary;
 };
 
 

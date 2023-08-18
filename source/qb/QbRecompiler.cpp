@@ -978,7 +978,12 @@ std::vector<u8> QbRecompiler::compile(std::string &source, ChecksumDictionary &s
                 bytes.push_back(((checksum) >> 16) & 0xFF);
                 bytes.push_back(((checksum) >> 24) & 0xFF);
 
-                symbols.populate(checksum, checksum_name);
+                unsigned long reversed = ((unsigned long)(checksum & 0xFF) << 24) |
+                                         ((unsigned long)((checksum >> 8) & 0xFF) << 16) |
+                                         ((unsigned long)((checksum >> 16) & 0xFF) << 8) |
+                                         ((unsigned long)((checksum >> 24) & 0xFF));
+
+                symbols.populate(reversed, checksum_name);
 
                 index++;
 

@@ -2,7 +2,7 @@
 #include <hex/helpers/fs.hpp>
 
 ChecksumDictionary::ChecksumDictionary() {
-    dictionary = std::map<uint32_t, std::string>();
+    dictionary = std::map<uint64_t, std::string>();
 }
 
 std::string ChecksumDictionary::getDictionaryPath() {
@@ -31,10 +31,10 @@ ChecksumDictionary ChecksumDictionary::load(const std::string& path) {
     nlohmann::basic_json json = nlohmann::json::parse(buf.str());
 
     if (!json.contains("checksums")) {
-        json["checksums"] = std::map<uint32_t, std::string>();
+        json["checksums"] = std::map<uint64_t, std::string>();
     }
 
-    std::map<uint32_t, std::string> dict = json["checksums"];
+    std::map<uint64_t, std::string> dict = json["checksums"];
 
     return ChecksumDictionary(dict);
 }
@@ -49,16 +49,16 @@ void ChecksumDictionary::save(const std::string& path) {
     data.close();
 }
 
-void ChecksumDictionary::populate(uint32_t value, std::string name) {
+void ChecksumDictionary::populate(uint64_t value, const std::string& name) {
     dictionary.insert({value, name});
 }
 
-bool ChecksumDictionary::contains(uint32_t value) {
+bool ChecksumDictionary::contains(uint64_t value) {
     return dictionary.contains(value);
 }
 
-std::string ChecksumDictionary::resolve(uint32_t checksum) {
+std::string ChecksumDictionary::resolve(uint64_t checksum) {
     return dictionary[checksum];
 }
 
-ChecksumDictionary::ChecksumDictionary(const std::map<uint32_t, std::string> &dictionary) : dictionary(dictionary) {}
+ChecksumDictionary::ChecksumDictionary(const std::map<uint64_t, std::string> &dictionary) : dictionary(dictionary) {}

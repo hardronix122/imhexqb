@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 23)
 
 # ImHexQb #
-project(imhexqb VERSION 1.0.5)
+project(imhexqb VERSION 1.0.6)
 
 # Include ImHex cmake module #
 set(IMHEX_BASE_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/ImHex)
