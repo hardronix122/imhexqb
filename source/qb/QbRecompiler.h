@@ -12,11 +12,12 @@
 #include "QbCrc.h"
 #include "../helper/DataHelper.h"
 #include "exception/QbException.h"
+#include "ChecksumDictionary.h"
 
 class QbRecompiler {
 public:
-    static std::string decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture, bool heuristicIndentation, int generation);
-    static std::vector<u8> compile(std::string& source, int generation);
+    static std::string decompile(std::vector<u8> bytes, ChecksumDictionary &symbols, bool greedySymbolCapture, bool heuristicIndentation, int generation);
+    static std::vector<u8> compile(std::string& source, ChecksumDictionary& symbols, int generation);
 };
 
 

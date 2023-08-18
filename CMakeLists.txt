@@ -16,7 +16,7 @@ addDefines()
 # Add your source files here #
 add_library(${PROJECT_NAME} SHARED
         source/ImHexQbPlugin.cpp
-        source/view/QbRecompilerView.cpp source/qb/QbRecompiler.cpp include/misc/cpp/imgui_stdlib.cpp include/misc/cpp/imgui_stdlib.h source/qb/QbCrc.cpp source/qb/QbCrc.h source/qb/exception/QbException.h source/qb/cstruct/CStructType.h source/qb/cstruct/CStructHelper.cpp source/qb/cstruct/CStructHelper.h source/qb/cstruct/CStructCComponent.cpp source/qb/cstruct/CStructCComponent.h source/helper/DataHelper.cpp source/helper/DataHelper.h source/type/Vectors.h source/qb/cstruct/CStructElements.h source/view/CStructRecompilerView.cpp source/view/CStructRecompilerView.h)
+        source/view/QbRecompilerView.cpp source/qb/QbRecompiler.cpp include/misc/cpp/imgui_stdlib.cpp include/misc/cpp/imgui_stdlib.h source/qb/QbCrc.cpp source/qb/QbCrc.h source/qb/exception/QbException.h source/qb/cstruct/CStructType.h source/qb/cstruct/CStructHelper.cpp source/qb/cstruct/CStructHelper.h source/qb/cstruct/CStructCComponent.cpp source/qb/cstruct/CStructCComponent.h source/helper/DataHelper.cpp source/helper/DataHelper.h source/type/Vectors.h source/qb/cstruct/CStructElements.h source/view/CStructRecompilerView.cpp source/view/CStructRecompilerView.h source/qb/ChecksumDictionary.cpp)
 
 # Add additional include directories here #
 target_include_directories(${PROJECT_NAME} PRIVATE include)

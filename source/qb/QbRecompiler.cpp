@@ -1,7 +1,7 @@
 #include "QbRecompiler.h"
 
 std::string
-QbRecompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &symbols, bool greedySymbolCapture,
+QbRecompiler::decompile(std::vector<u8> bytes, ChecksumDictionary &symbols, bool greedySymbolCapture,
                         bool heuristicIndentation, int generation) {
     std::string code;
 
@@ -109,7 +109,7 @@ QbRecompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &s
                     int checksum = DataHelper::readReversedInteger(i, bytes);
 
                     if (symbols.contains(checksum)) {
-                        code += "$" + symbols[checksum] + "$";
+                        code += "$" + symbols.resolve(checksum) + "$";
                     } else {
                         std::stringstream ss;
                         ss << std::setfill('0') << std::setw(sizeof(int) * 2) << std::hex << checksum;
@@ -290,7 +290,7 @@ QbRecompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &s
                     //code += "\n#/ Symbol entry: " + std::to_string(checksum) + " = " + value + "\n";
 
                     if (!symbols.contains(checksum) && greedySymbolCapture) {
-                        symbols.insert(std::pair<int32_t, std::string>(checksum, name));
+                        symbols.populate(checksum, name);
                     }
                 }
                 break;
@@ -444,10 +444,14 @@ QbRecompiler::decompile(std::vector<u8> bytes, std::map<int32_t, std::string> &s
         lastInstruction = byte;
     }
 
+    if(greedySymbolCapture) {
+        symbols.save(ChecksumDictionary::getDictionaryPath());
+    }
+
     return code;
 }
 
-std::vector<u8> QbRecompiler::compile(std::string &source, int generation) {
+std::vector<u8> QbRecompiler::compile(std::string &source, ChecksumDictionary &symbols, int generation) {
     std::vector<u8> bytes = std::vector<u8>();
 
     std::istringstream sourceStream(source);
@@ -973,6 +977,8 @@ std::vector<u8> QbRecompiler::compile(std::string &source, int generation) {
                 bytes.push_back(((checksum) >> 8) & 0xFF);
                 bytes.push_back(((checksum) >> 16) & 0xFF);
                 bytes.push_back(((checksum) >> 24) & 0xFF);
+
+                symbols.populate(checksum, checksum_name);
 
                 index++;
 
@@ -1525,6 +1531,8 @@ std::vector<u8> QbRecompiler::compile(std::string &source, int generation) {
 
         lineIndex++;
     }
+
+    symbols.save(ChecksumDictionary::getDictionaryPath());
 
     return bytes;
 }

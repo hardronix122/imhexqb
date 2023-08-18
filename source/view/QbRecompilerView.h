@@ -15,11 +15,11 @@ class QbRecompilerView : public View {
 private:
     std::string text;
     std::vector<std::string> errors;
-    std::map<int32_t, std::string> symbols;
     bool greedySymbolCapture = false;
     bool heuristicIndentation = false;
     bool oldgen;
     hex::Region selectedRegion{};
+    ChecksumDictionary dictionary;
 public:
     QbRecompilerView();
     ~QbRecompilerView() override = default;

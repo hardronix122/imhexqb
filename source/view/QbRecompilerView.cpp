@@ -1,9 +1,10 @@
 #include "QbRecompilerView.h"
 
 QbRecompilerView::QbRecompilerView() : View("Qb Re-compiler") {
-    symbols = std::map<int32_t, std::string>();
     text = std::string("#/ Decompiled instructions will appear here");
     oldgen = false;
+
+    dictionary = ChecksumDictionary::load(ChecksumDictionary::getDictionaryPath());
 
     EventManager::subscribe<EventRegionSelected>(this, [this](Region region) {
         onRegionSelected(region);
@@ -16,7 +17,7 @@ void QbRecompilerView::onRegionSelected(hex::Region region) {
     auto reader = prv::ProviderReader(provider);
     reader.setEndAddress(region.getEndAddress());
 
-    text = QbRecompiler::decompile(reader.read(region.getStartAddress(), region.getSize()), symbols,
+    text = QbRecompiler::decompile(reader.read(region.getStartAddress(), region.getSize()), dictionary,
                                    greedySymbolCapture, heuristicIndentation, oldgen ? 4 : 5);
     text.resize(text.size() * 2);
     selectedRegion = region;
@@ -31,7 +32,7 @@ void QbRecompilerView::drawContent() {
             errors.clear();
 
             try {
-                bytes = QbRecompiler::compile(text, oldgen ? 4 : 5);
+                bytes = QbRecompiler::compile(text, dictionary, oldgen ? 4 : 5);
             } catch (QbException &exception) {
                 errors.emplace_back(exception.what());
             } catch (std::exception &exception) {
@@ -55,12 +56,6 @@ void QbRecompilerView::drawContent() {
         ImGui::SameLine();
 
         ImGui::Checkbox("Greedy symbol capture", &greedySymbolCapture);
-
-        ImGui::SameLine();
-
-        if (ImGui::Button("Clear names")) {
-            symbols.clear();
-        }
 
         ImGui::SameLine();
 
