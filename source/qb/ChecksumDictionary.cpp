@@ -2,7 +2,7 @@
 #include <hex/helpers/fs.hpp>
 
 ChecksumDictionary::ChecksumDictionary() {
-    dictionary = std::map<uint64_t, std::string>();
+    dictionary = std::map<uint32_t, std::string>();
 }
 
 std::string ChecksumDictionary::getDictionaryPath() {
@@ -36,9 +36,10 @@ ChecksumDictionary ChecksumDictionary::load(const std::string& path) {
 
     std::map<std::string, std::string> dict = json["checksums"];
 
-    std::map<uint64_t, std::string> target;
+    std::map<uint32_t, std::string> target;
 
     for(auto const& [key, value] : dict) {
+        printf("%lu - %s\n", std::stoul(key, nullptr, 16), value.c_str());
         target.insert({std::stoul(key, nullptr, 16), value});
     }
 
@@ -54,6 +55,8 @@ void ChecksumDictionary::save(const std::string& path) {
         std::stringstream ss;
         ss << std::setfill('0') << std::setw(sizeof(int) * 2) << std::hex << key;
 
+        printf("%s - %s\n", ss.str().c_str(), value.c_str());
+
         dict.insert({ss.str(), value});
     }
 
@@ -64,16 +67,16 @@ void ChecksumDictionary::save(const std::string& path) {
     data.close();
 }
 
-void ChecksumDictionary::populate(uint64_t value, const std::string& name) {
+void ChecksumDictionary::populate(uint32_t value, const std::string& name) {
     dictionary.insert({value, name});
 }
 
-bool ChecksumDictionary::contains(uint64_t value) {
+bool ChecksumDictionary::contains(uint32_t value) {
     return dictionary.contains(value);
 }
 
-std::string ChecksumDictionary::resolve(uint64_t checksum) {
+std::string ChecksumDictionary::resolve(uint32_t checksum) {
     return dictionary[checksum];
 }
 
-ChecksumDictionary::ChecksumDictionary(const std::map<uint64_t, std::string> &dictionary) : dictionary(dictionary) {}
+ChecksumDictionary::ChecksumDictionary(const std::map<uint32_t, std::string> &dictionary) : dictionary(dictionary) {}
